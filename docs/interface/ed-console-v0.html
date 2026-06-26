@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!--
+    Project Ed TODO:
+    This is a one-file prototype for fast visual testing.
+    Later we should split it into:
+    - index.html
+    - styles.css
+    - app.js
+  -->
+
+  <title>Ed Console v0.1</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" /><link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --teal: #2e9599;
+      --teal-dim: rgba(46,149,153,0.18);
+      --teal-glow: rgba(46,149,153,0.55);
+      --hot: #f1184c;
+      --hot-glow: rgba(241,24,76,0.6);
+      --coral: #f36943;
+      --yellow: #f7dc66;
+      --magenta: #a8216b;
+      --bg: #09080d;
+      --bg2: #0f0d16;
+      --bg3: #151220;
+      --panel: #12101a;
+      --border: rgba(46,149,153,0.28);
+      --border-hot: rgba(241,24,76,0.45);
+      --text: #d4eff0;
+      --text-dim: #7a9ea0;
+    --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "SF Mono", Menlo, Consolas, monospace;
+    --field-mono: "Geist Mono", "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.035) 2px,
+        rgba(0,0,0,0.035) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    @keyframes blink {
+      0%,100% {
+        opacity: 1;
+        box-shadow: 0 0 8px var(--hot-glow), 0 0 18px var(--hot-glow);
+      }
+
+      50% {
+        opacity: 0.3;
+        box-shadow: 0 0 3px var(--hot-glow);
+      }
+    }
+
+    @keyframes teal-pulse {
+      0%,100% {
+        box-shadow: 0 0 0 1px var(--teal), 0 0 14px var(--teal-glow), inset 0 0 8px rgba(46,149,153,0.06);
+      }
+
+      50% {
+        box-shadow: 0 0 0 1px var(--teal), 0 0 28px var(--teal-glow), inset 0 0 14px rgba(46,149,153,0.12);
+      }
+    }
+
+    @keyframes hot-pulse {
+      0%,100% {
+        box-shadow: 0 0 0 1px var(--hot), 0 0 14px rgba(241,24,76,0.5), inset 0 0 8px rgba(241,24,76,0.06);
+      }
+
+      50% {
+        box-shadow: 0 0 0 1px var(--hot), 0 0 32px rgba(241,24,76,0.7), inset 0 0 16px rgba(241,24,76,0.12);
+      }
+    }
+
+    @keyframes coral-pulse {
+      0%,100% {
+        box-shadow: 0 0 0 1px var(--coral), 0 0 12px rgba(243,105,67,0.45);
+      }
+
+      50% {
+        box-shadow: 0 0 0 1px var(--coral), 0 0 24px rgba(243,105,67,0.65);
+      }
+    }
+
+    @keyframes yellow-pulse {
+      0%,100% {
+        box-shadow: 0 0 0 1px var(--yellow), 0 0 10px rgba(247,220,102,0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 0 1px var(--yellow), 0 0 22px rgba(247,220,102,0.65);
+      }
+    }
+
+    @keyframes sweep {
+      0% {
+        background-position: -200% center;
+      }
+
+      100% {
+        background-position: 200% center;
+      }
+    }
+
+    header {
+      padding: 18px 24px 14px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #0e0c1a 0%, #09080d 100%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-family: var(--mono);
+      font-size: 1.3rem;
+      color: var(--teal);
+      letter-spacing: 0.08em;
+      text-shadow: 0 0 12px var(--teal-glow);
+    }
+
+    header h1 span {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+
+    header p {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin: 2px 0 0;
+      letter-spacing: 0.05em;
+    }
+
+    .header-pills {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--hot);
+      box-shadow: 0 0 8px var(--hot-glow), 0 0 16px var(--hot-glow);
+      animation: blink 1.4s ease-in-out infinite;
+      flex-shrink: 0;
+      display: inline-block;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 16px;
+      padding: 16px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--teal);
+      box-shadow: 0 0 10px var(--teal-glow);
+    }
+
+    .panel.accent-hot::before {
+      background: var(--hot);
+      box-shadow: 0 0 10px var(--hot-glow);
+    }
+
+    .panel.accent-coral::before {
+      background: var(--coral);
+      box-shadow: none;
+    }
+
+    .panel.accent-yellow::before {
+      background: var(--yellow);
+      box-shadow: none;
+    }
+
+    .panel-title {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--teal);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title.hot {
+      color: var(--hot);
+      text-shadow: 0 0 8px var(--hot-glow);
+    }
+
+    .panel-title.coral {
+      color: var(--coral);
+    }
+
+    .panel-title.yellow {
+      color: var(--yellow);
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    label.field-label,
+    .field-label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 0 0 5px;
+    }
+
+input,
+textarea,
+select {
+  width: 100%;
+  background: #0a0912;
+  border: 1px solid rgba(46,149,153,0.35);
+  border-radius: 10px;
+  padding: 10px 11px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(212, 239, 240, 0.46);
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px var(--teal-dim), 0 0 12px var(--teal-dim);
+    }
+
+    select {
+      appearance: none;
+      cursor: pointer;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-weight: 700;
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-teal {
+      background: rgba(46,149,153,0.15);
+      color: var(--teal);
+      border: 1px solid var(--teal);
+      box-shadow: 0 0 8px rgba(46,149,153,0.25);
+    }
+
+    .btn-teal:hover {
+      box-shadow: 0 0 16px var(--teal-glow);
+    }
+
+    .btn-hot {
+      background: rgba(241,24,76,0.15);
+      color: var(--hot);
+      border: 1px solid var(--hot);
+      box-shadow: 0 0 8px rgba(241,24,76,0.25);
+    }
+
+    .btn-hot:hover {
+      box-shadow: 0 0 16px var(--hot-glow);
+    }
+
+    .btn-coral {
+      background: rgba(243,105,67,0.12);
+      color: var(--coral);
+      border: 1px solid var(--coral);
+    }
+
+    .btn-yellow {
+      background: rgba(247,220,102,0.1);
+      color: var(--yellow);
+      border: 1px solid rgba(247,220,102,0.6);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .log {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-top: 10px;
+      padding-right: 2px;
+    }
+
+    .log::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .log::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .log::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .log-entry {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      padding: 8px 10px;
+      background: #0a0912;
+      border: 1px solid rgba(46,149,153,0.18);
+      border-radius: 6px;
+      line-height: 1.45;
+    }
+
+    .log-entry .ts {
+      color: var(--teal);
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .col-panel {
+      background: #0a0912;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 120px;
+    }
+
+    .col-panel-title {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+    }
+
+    .note {
+      font-size: 0.82rem;
+      padding: 7px 8px;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      border-left: 2px solid var(--teal);
+      background: rgba(46,149,153,0.07);
+      color: #a8d8da;
+      line-height: 1.45;
+    }
+
+    .note.hot {
+      border-left-color: var(--hot);
+      background: rgba(241,24,76,0.07);
+      color: #f8a0b0;
+    }
+
+    .note.coral {
+      border-left-color: var(--coral);
+      background: rgba(243,105,67,0.07);
+      color: #f4b99e;
+    }
+
+    .note.yellow {
+      border-left-color: var(--yellow);
+      background: rgba(247,220,102,0.07);
+      color: #f9eca0;
+    }
+
+    .note.dim {
+      border-left-color: rgba(122,158,160,0.35);
+      background: rgba(122,158,160,0.05);
+      color: var(--text-dim);
+    }
+
+    .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .ind-teal {
+      background: var(--teal);
+      box-shadow: 0 0 6px var(--teal-glow);
+    }
+
+    .ind-hot {
+      background: var(--hot);
+      box-shadow: 0 0 6px var(--hot-glow);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+
+    .ind-yellow {
+      background: var(--yellow);
+      box-shadow: 0 0 6px rgba(247,220,102,0.7);
+    }
+
+    .ind-coral {
+      background: var(--coral);
+      box-shadow: 0 0 5px rgba(243,105,67,0.6);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      background: #0a0912;
+      white-space: nowrap;
+    }
+
+    .dropzone {
+      border: 1px dashed rgba(46,149,153,0.45);
+      border-radius: 10px;
+      padding: 18px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(46,149,153,0.04);
+      transition: 0.15s ease;
+    }
+
+    .dropzone:hover,
+    .dropzone.dragover {
+      background: rgba(46,149,153,0.1);
+      border-color: var(--teal);
+      box-shadow: 0 0 12px var(--teal-dim);
+    }
+
+    .dropzone-label {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--teal);
+      text-shadow: 0 0 8px var(--teal-glow);
+    }
+
+    .dropzone-sub {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      margin: 5px 0 0;
+    }
+
+    .queue {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .queue-item {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #0a0912;
+    }
+
+    .thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      color: var(--text-dim);
+      font-size: 0.65rem;
+      font-family: var(--mono);
+      text-align: center;
+    }
+
+    .queue-name {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--text);
+      margin: 0 0 3px;
+      overflow-wrap: anywhere;
+    }
+
+    .queue-meta {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      overflow-wrap: anywhere;
+    }
+
+    .tx-panel {
+      background: var(--panel);
+      border: 1px solid rgba(46,149,153,0.3);
+      border-radius: 12px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tx-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--teal);
+      box-shadow: 0 0 12px var(--teal-glow), 0 0 24px var(--teal-dim);
+    }
+
+    .tx-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .tx-title {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--teal);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-shadow: 0 0 8px var(--teal-glow);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .tx-live {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      color: var(--hot);
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-shadow: 0 0 6px var(--hot-glow);
+    }
+
+    .tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.tx-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tx-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tx-list::-webkit-scrollbar-thumb {
+  background: rgba(46,149,153,0.35);
+  border-radius: 4px;
+}
+
+    .tx-msg {
+  border-radius: 8px;
+  padding: 8px 10px;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  min-height: 72px;
+}
+    .tx-msg::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: sweep 3.5s linear infinite;
+    }
+
+    .tx-teal {
+      background: rgba(46,149,153,0.1);
+      border: 1px solid rgba(46,149,153,0.4);
+      animation: teal-pulse 2.8s ease-in-out infinite;
+    }
+
+    .tx-hot {
+      background: rgba(241,24,76,0.1);
+      border: 1px solid rgba(241,24,76,0.4);
+      animation: hot-pulse 2s ease-in-out infinite;
+    }
+
+    .tx-coral {
+      background: rgba(243,105,67,0.08);
+      border: 1px solid rgba(243,105,67,0.4);
+      animation: coral-pulse 3s ease-in-out infinite;
+    }
+
+    .tx-yellow {
+      background: rgba(247,220,102,0.07);
+      border: 1px solid rgba(247,220,102,0.4);
+      animation: yellow-pulse 3.5s ease-in-out infinite;
+    }
+
+    .tx-type {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 0 0 4px;
+      opacity: 0.85;
+    }
+
+    .tx-teal .tx-type {
+      color: var(--teal);
+    }
+
+    .tx-hot .tx-type {
+      color: var(--hot);
+    }
+
+    .tx-coral .tx-type {
+      color: var(--coral);
+    }
+
+    .tx-yellow .tx-type {
+      color: var(--yellow);
+    }
+
+    .tx-body {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  margin: 0;
+  color: var(--text);
+}
+
+    .tx-time {
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      color: var(--text-dim);
+      margin-top: 5px;
+    }
+
+    .perm-item {
+      font-size: 0.82rem;
+      padding: 7px 8px;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      background: #0a0912;
+      color: var(--text-dim);
+      border-left: 2px solid rgba(46,149,153,0.4);
+      line-height: 1.45;
+    }
+
+    .perm-item.deny {
+      border-left-color: rgba(241,24,76,0.5);
+      color: #f8a0b0;
+    }
+
+    .section-sub {
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 10px 0 5px;
+    }
+
+    .small-mono {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    footer {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 6px 16px 20px;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: rgba(46,149,153,0.4);
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 900px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .header-pills {
+        margin-left: 0;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-3,
+      .grid-2,
+      .columns {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+  <header>
+    <div>
+      <h1>ED CONSOLE <span>v0.1</span></h1>
+      <p>Command Center prototype · Teal uplink active · No live wires yet</p>
+    </div>
+
+```
+<div class="header-pills">
+  <div class="pill"><span class="indicator ind-teal"></span> Teal uplink</div>
+  <div class="pill"><span class="indicator ind-hot"></span> Prototype</div>
+  <div class="pill"><span class="indicator ind-yellow"></span> Local only</div>
+</div>
+```
+
+  </header>
+
+  <main>
+    <div class="col">
+      <div class="panel">
+        <div class="panel-title"><span class="indicator ind-teal"></span> Now</div>
+
+```
+    <div class="grid-3">
+      <div>
+        <label class="field-label" for="focus">Current focus</label>
+        <input id="focus" placeholder="What are we doing right now?" />
+      </div>
+
+      <div>
+        <label class="field-label" for="nextMove">Next move</label>
+        <input id="nextMove" placeholder="Smallest useful action" />
+      </div>
+
+      <div>
+        <label class="field-label" for="blocker">Friction / blocker</label>
+        <input id="blocker" placeholder="What is slowing us down?" />
+      </div>
+    </div>
+  </div>
+
+  <div class="panel accent-hot">
+    <div class="panel-title hot"><span class="indicator ind-hot"></span> Capture</div>
+
+    <label class="field-label" for="captureText">Brain dump</label>
+    <textarea id="captureText" placeholder="Dump the thought. Ed sorts later."></textarea>
+
+    <div class="grid-3" style="margin-top:10px;">
+      <div>
+        <label class="field-label" for="category">Category</label>
+        <select id="category">
+          <option>Unsorted</option>
+          <option>Project Ed</option>
+          <option>Don't Forget</option>
+          <option>Field Note</option>
+          <option>Task</option>
+          <option>Idea</option>
+          <option>Question</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="field-label" for="source">Source</label>
+        <select id="source">
+          <option>console</option>
+          <option>paper notes</option>
+          <option>chat</option>
+          <option>terminal</option>
+          <option>client work</option>
+        </select>
+      </div>
+
+      <div style="display:flex;align-items:flex-end;">
+        <button class="btn-hot" style="width:100%;" onclick="fakeCapture()">Capture</button>
+      </div>
+    </div>
+
+    <div class="section-sub" style="margin-top:14px;">Local capture log</div>
+    <div id="captureLog" class="log">
+      <div class="log-entry">// No captures yet. The silence is suspicious.</div>
+    </div>
+  </div>
+
+  <div class="panel accent-coral">
+    <div class="panel-title coral"><span class="indicator ind-coral"></span> Written Notes Upload</div>
+    <p class="small-mono" style="margin-bottom:10px;">V0 intake only · Browser session · No OCR · No cloud upload</p>
+
+    <div id="dropzone" class="dropzone">
+      <div class="dropzone-label">▼ Drop handwritten note photos/scans here ▼</div>
+      <p class="dropzone-sub">Click to choose · Multiple pages OK · PDFs accepted</p>
+      <input id="fileInput" type="file" accept="image/*,.pdf" multiple hidden />
+    </div>
+
+    <div style="margin-top:10px;">
+      <label class="field-label" for="noteBatch">Batch label</label>
+      <input id="noteBatch" placeholder="Terminal notes 2026-06-17" />
+    </div>
+
+    <div id="noteQueue" class="queue"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span class="indicator ind-teal"></span> Today / Later / Parking Lot</div>
+
+    <div class="columns">
+      <div class="col-panel">
+        <div class="col-panel-title" style="color:var(--teal)">Today</div>
+        <div class="note">Finish Ed Console v0 shell</div>
+      </div>
+
+      <div class="col-panel">
+        <div class="col-panel-title" style="color:var(--coral)">Later</div>
+        <div class="note coral">OCR handwritten notes</div>
+        <div class="note coral">Broker connection</div>
+      </div>
+
+      <div class="col-panel">
+        <div class="col-panel-title" style="color:var(--text-dim)">Parking Lot</div>
+        <div class="note dim">Full dashboard</div>
+        <div class="note dim">ChatGPT Action</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel accent-yellow">
+    <div class="panel-title yellow"><span class="indicator ind-yellow"></span> Fake Action Buttons</div>
+
+    <div class="btn-row">
+      <button class="btn-teal" onclick="fakeAction('Route')">Route</button>
+      <button class="btn-hot" onclick="fakeAction('Don\\'t Forget')">Don't Forget</button>
+      <button class="btn-coral" onclick="fakeAction('Make Task')">Make Task</button>
+      <button class="btn-yellow" onclick="fakeAction('Field Note')">Field Note</button>
+    </div>
+
+    <p class="small-mono" style="margin-top:10px;">Cardboard cockpit. Zero live wires. Writes to log only.</p>
+  </div>
+</div>
+
+<aside class="col">
+  <div class="tx-panel">
+    <div class="tx-header">
+      <div class="tx-title">
+        <span class="indicator ind-teal"></span>
+        Status
+      </div>
+
+      <div class="tx-live">
+        <span class="live-dot"></span>
+        LIVE
+      </div>
+    </div>
+
+    <div class="tx-list" id="txList">
+      <div class="tx-msg tx-hot">
+        <div class="tx-type">Alert</div>
+        <p class="tx-body">QBO Payroll cert renewal due this month. Don't let it lapse.</p>
+        <div class="tx-time">Today · 09:14</div>
+      </div>
+
+      <div class="tx-msg tx-teal">
+        <div class="tx-type">Status</div>
+        <p class="tx-body">Project Diane: Make pipeline in active dev. Last session: trigger mapping.</p>
+        <div class="tx-time">Yesterday · 22:41</div>
+      </div>
+
+      <div class="tx-msg tx-coral">
+        <div class="tx-type">Client</div>
+        <p class="tx-body">High Ticket: Check in with Patti re: referral pipeline status.</p>
+        <div class="tx-time">Jun 16 · 14:07</div>
+      </div>
+
+      <div class="tx-msg tx-yellow">
+        <div class="tx-type">Ed Note</div>
+        <p class="tx-body">GitHub Pages v2: hero section still needs revert to v1 split-panel. Push via Claude Code.</p>
+        <div class="tx-time">Jun 15 · 11:30</div>
+      </div>
+    </div>
+
+    <button class="btn-teal" style="width:100%;margin-top:12px;" onclick="addFakeTx()">+ Inject Test Transmission</button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span class="indicator ind-teal"></span> Permission Pass</div>
+
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+      <div class="pill"><span class="indicator" style="background:var(--hot);box-shadow:0 0 5px var(--hot-glow);"></span> Not connected</div>
+      <div class="pill"><span class="indicator ind-yellow"></span> Prototype only</div>
+    </div>
+
+    <div class="section-sub">Allowed later</div>
+    <div class="perm-item">Append internal capture notes</div>
+    <div class="perm-item">Queue handwritten pages for OCR</div>
+    <div class="perm-item">Create clear internal tasks</div>
+
+    <div class="section-sub">Still ask first</div>
+    <div class="perm-item deny">Publish public pages</div>
+    <div class="perm-item deny">Send emails or commitments</div>
+    <div class="perm-item deny">Delete or change permissions</div>
+  </div>
+</aside>
+```
+
+  </main>
+
+  <footer>
+    Project Ed doctrine: one Ed · one briefing doc · two sites with two jobs · one Markdown capture/docs system · one calm page
+  </footer>
+
+  <script>
+    const captureLog = document.getElementById('captureLog');
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const noteQueue = document.getElementById('noteQueue');
+
+    function ts() {
+      return new Date().toLocaleString([], {
+        month: '2-digit',
+        day: '2-digit',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    }
+
+    function addLog(msg) {
+      const init = captureLog.querySelector('.log-entry');
+
+      if (init && init.textContent.startsWith('//')) {
+        captureLog.innerHTML = '';
+      }
+
+      const e = document.createElement('div');
+      e.className = 'log-entry';
+      e.innerHTML = `<span class="ts">[${ts()}]</span> ${escHtml(msg)}`;
+      captureLog.prepend(e);
+    }
+
+    function fakeCapture() {
+      const text = document.getElementById('captureText').value.trim();
+      const cat = document.getElementById('category').value;
+      const src = document.getElementById('source').value;
+
+      if (!text) {
+        addLog('Capture refused: empty brain dump.');
+        return;
+      }
+
+      addLog(`${cat} | ${src}: ${text.slice(0, 80)}${text.length > 80 ? '...' : ''}`);
+      document.getElementById('captureText').value = '';
+    }
+
+    function fakeAction(name) {
+      addLog(`Fake action: ${name} - no live routing yet.`);
+    }
+
+    const txTypes = [
+      {
+        cls: 'tx-hot',
+        type: 'Alert',
+        msgs: ['Urgent: something needs your attention.', 'Hot item incoming - check capture log.']
+      },
+      {
+        cls: 'tx-teal',
+        type: 'Status',
+        msgs: ['System nominal. All uplinks holding.', 'Ed is standing by for input.']
+      },
+      {
+        cls: 'tx-coral',
+        type: 'Client',
+        msgs: ['Client check-in flag. Needs follow-up.', 'Referral pipeline item queued.']
+      },
+      {
+        cls: 'tx-yellow',
+        type: 'Ed Note',
+        msgs: ['Reminder from past-Ernie: check parking lot.', 'Internal flag - see notes.']
+      }
+    ];
+
+    function addFakeTx() {
+      const t = txTypes[Math.floor(Math.random() * txTypes.length)];
+      const msg = t.msgs[Math.floor(Math.random() * t.msgs.length)];
+      const list = document.getElementById('txList');
+      const el = document.createElement('div');
+
+      el.className = `tx-msg ${t.cls}`;
+      el.innerHTML = `<div class="tx-type">${t.type}</div><p class="tx-body">${msg}</p><div class="tx-time">Just now · ${ts()}</div>`;
+
+      list.prepend(el);
+      addLog(`Transmission injected: ${t.type}`);
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    dropzone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', e => {
+      handleFiles(e.target.files);
+      fileInput.value = '';
+    });
+
+    function handleFiles(files) {
+      const batch = document.getElementById('noteBatch').value.trim() || 'Unlabeled batch';
+
+      Array.from(files).forEach(file => {
+        const item = document.createElement('div');
+        item.className = 'queue-item';
+
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.className = 'thumb';
+          img.src = URL.createObjectURL(file);
+          img.alt = file.name;
+          item.appendChild(img);
+        } else {
+          const th = document.createElement('div');
+          th.className = 'thumb';
+          th.textContent = 'PDF';
+          item.appendChild(th);
+        }
+
+        const d = document.createElement('div');
+        d.innerHTML = `<div class="queue-name">${escHtml(file.name)}</div><div class="queue-meta">${escHtml(batch)} · ${Math.round(file.size / 1024)} KB</div>`;
+
+        item.appendChild(d);
+        noteQueue.prepend(item);
+        addLog(`Queued: ${file.name}`);
+      });
+    }
+
+    function escHtml(v) {
+      return String(v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+
+</body>
+</html>
