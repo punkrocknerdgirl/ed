@@ -1,0 +1,17 @@
+.DS_Store
+
+# Secrets and local test payloads
+.env
+.env.*
+ed-broker-test.json
+*secret*
+*token*
+credentials*
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local/editor junk
+.vscode/
