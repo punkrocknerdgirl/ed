@@ -9,11 +9,11 @@ Repo: `punkrocknerdgirl/ed`
 
 Project Ed is Ernie's personal operating system assistant and work interface.
 
-Ed exists so Ernie can dump work, thoughts, reminders, project notes, field notes, client context, process discoveries, and tool friction into one assistant workflow. Ed then helps route, draft, organize, document, and act within the approved boundaries.
+Ed exists so Ernie can spill work, thoughts, reminders, project notes, field notes, client context, process discoveries, and tool friction into one assistant workflow. Ed then helps route, draft, organize, document, and act within the approved boundaries.
 
 Core rule:
 
-> Ernie dumps. Ed sorts.
+> Ernie spills; Ed sorts.
 
 This file is the current main Ed document. It should stay short enough to be usable and complete enough to rebuild Ed's operating rules from scratch.
 
