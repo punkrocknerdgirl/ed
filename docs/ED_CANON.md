@@ -38,11 +38,11 @@ Current key GitHub files:
 
 - `docs/ED_CANON.md` - current main Ed document
 - `docs/ed_build-log.md` - dated build notes and checkpoints
-- `docs/ed_feature-requests.md` - feature request parking lot extracted from older docs and planning
+- `docs/ed_feature-requests.md` - feature request parking lot extracted from older planning
 
 ### ClickUp
 
-ClickUp is the active work system.
+ClickUp is the active work and operational documentation system.
 
 Use ClickUp for:
 
@@ -51,23 +51,14 @@ Use ClickUp for:
 - daily status review
 - operational work plans
 - client/project task tracking
+- flowery writing
+- new ideas
+- non-technical docs
 - operational docs that are not build-source documentation
 
 ClickUp tasks are the source of truth for what Ernie is actually supposed to do next.
 
-### Google Drive and Google Docs
-
-Google Drive/Docs are not canon for Project Ed.
-
-Use Google Drive/Docs for:
-
-- temporary capture
-- intake
-- archive storage
-- screenshots and artifacts
-- old docs that may contain feature requests or historical evidence
-
-When older Google Docs contain unique feature requests, extract those requests into GitHub. Do not treat the whole document as current truth.
+Project Ed has a main ClickUp Doc. If Ernie tells Ed to add something to ClickUp, put it in a subdoc under that main Project Ed doc unless Ernie gives a different destination.
 
 ### ChatGPT / Ed
 
@@ -75,7 +66,7 @@ ChatGPT is the working interface.
 
 Ed may reason, draft, summarize, search connected tools, create files, organize information, and help operate the system within approved guardrails.
 
-The chat itself is not the source of truth. Durable Project Ed truth belongs in GitHub.
+The chat itself is not the source of truth. Durable Project Ed technical truth belongs in GitHub. Active work and non-technical working docs belong in ClickUp.
 
 ## 3. Guardrails
 
@@ -345,7 +336,9 @@ Update `docs/ED_CANON.md` only when a change becomes durable Project Ed truth.
 
 Update `docs/ed_build-log.md` for dated implementation notes, tests, failures, and checkpoints.
 
-Update `docs/ed_feature-requests.md` when old docs or chats contain candidate features that should not be lost.
+Update `docs/ed_feature-requests.md` when chats or archived planning contain candidate features that should not be lost.
+
+Use ClickUp Docs for flowery writing, new ideas, and non-technical documentation. When adding Project Ed material to ClickUp, use a subdoc under the main Project Ed ClickUp Doc unless Ernie gives a different destination.
 
 Do not copy whole old docs into canon.
 
