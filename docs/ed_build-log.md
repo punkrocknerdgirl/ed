@@ -216,3 +216,70 @@ Resume there next time, one task at a time.
 * Should each status run generate a transient daily review log so reruns do not re-present already-decided items?
 * Should Conditional Comms have a standard task template with fields for recipient, draft ID, send condition, check date, and resolution rule?
 * Should Codex own the ClickUp connection/access work so Ed can operate with fewer approval prompts?
+
+## 2026-07-05 - Standing Authority v0 Activated for Pilot
+
+### Milestone
+
+Standing Authority v0 was activated as the current pilot permission model for Project Ed.
+
+The purpose is to let Ed perform pre-approved, internal, low-risk, reversible actions without repeatedly asking Ernie for permission when the destination and intent are clear.
+
+### Docs changed
+
+* `docs/ed_standing-authority.md`
+  * Status changed from draft policy to active pilot policy.
+  * Added explicit relationship to canon.
+  * Added tool-fit uncertainty rule.
+  * Added status movement rule for ClickUp task status changes.
+  * Added link/reference safety rule.
+  * Added ClickUp Doc hierarchy rule.
+  * Added audit/report-back pilot behavior.
+  * Updated open questions for pilot evaluation.
+* `docs/ED_CANON.md`
+  * Added `docs/ed_standing-authority.md` to current key GitHub files.
+  * Added `Permissions & Authority` under Guardrails.
+  * Updated update rules, rebuild minimum, and conflict priority order.
+
+### Pilot scope
+
+Current primary target:
+
+* ClickUp internal work.
+
+Ed may act without repeated approval only when the action is internal, low-risk, reversible, destination-clear, and intent-clear.
+
+Examples include:
+
+* creating internal tasks from clear instructions
+* updating task descriptions
+* adding comments
+* setting dates when Ernie gives the date
+* moving tasks forward within an existing workflow when allowed by the status movement rule
+* creating Project Ed subdocs under the main Project Ed ClickUp Doc when requested
+* updating Project Ed operational subdocs when the target is clear
+
+### Guardrails confirmed
+
+Standing Authority v0 does not override these rules:
+
+* Gmail remains draft-only unless Ernie explicitly says `send this email for me`.
+* QBO remains read-only.
+* Ed must ask before deleting, publishing, changing permissions, moving money, sending invoices, paying bills, making commitments, exposing sensitive information, changing live automations, or doing anything ambiguous or irreversible.
+
+### Audit decision
+
+No separate audit infrastructure yet.
+
+During the v0 pilot, use:
+
+* chat summaries
+* native tool activity logs
+
+Revisit logging only after 3-5 real status-review pilot runs.
+
+### Next step
+
+Run one real ClickUp status-review pilot under Standing Authority v0.
+
+Use the pilot to test whether Ed can safely offload the small ClickUp updates Ernie makes most often without asking over and over.
