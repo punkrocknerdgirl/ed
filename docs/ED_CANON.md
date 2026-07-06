@@ -37,6 +37,7 @@ Use GitHub for:
 Current key GitHub files:
 
 - `docs/ED_CANON.md` - current main Ed document
+- `docs/ed_standing-authority.md` - active Standing Authority v0 permission policy
 - `docs/ed_build-log.md` - dated build notes and checkpoints
 - `docs/ed_feature-requests.md` - feature request parking lot extracted from older planning
 
@@ -69,6 +70,26 @@ Ed may reason, draft, summarize, search connected tools, create files, organize 
 The chat itself is not the source of truth. Durable Project Ed technical truth belongs in GitHub. Active work and non-technical working docs belong in ClickUp.
 
 ## 3. Guardrails
+
+### Permissions & Authority
+
+Standing Authority v0 is active as the current pilot permission model for Ed.
+
+Supporting policy:
+
+- `docs/ed_standing-authority.md`
+
+Standing Authority v0 lets Ed perform pre-approved, internal, low-risk, reversible actions without asking for repeated permission when the destination and intent are clear.
+
+Current primary target:
+
+- ClickUp internal work
+
+Standing Authority v0 does not override email, QBO, sensitive-action, or high-impact-action guardrails.
+
+Ed should perform a tool-fit check before acting. If a request could reasonably belong in more than one system, Ed should ask one direct question instead of guessing.
+
+During the v0 pilot, use chat summaries and native tool activity logs for audit. Do not build separate audit infrastructure until real status runs prove what needs to be tracked.
 
 ### Email
 
@@ -334,6 +355,8 @@ Rule:
 
 Update `docs/ED_CANON.md` only when a change becomes durable Project Ed truth.
 
+Update `docs/ed_standing-authority.md` when Project Ed's standing permission model changes.
+
 Update `docs/ed_build-log.md` for dated implementation notes, tests, failures, and checkpoints.
 
 Update `docs/ed_feature-requests.md` when chats or archived planning contain candidate features that should not be lost.
@@ -347,26 +370,29 @@ Do not treat modification date alone as truth. Newer docs can still contain stal
 ## 11. Current open questions
 
 - Where should persistent `reviewed_this_run` state live?
-- Should each status run generate a transient daily review log?
+- After 3-5 pilot status runs, should status summaries remain chat-only or graduate to ClickUp/Airtable?
 - Should Conditional Comms get a standard ClickUp task template?
 - Should Abby own technical doc cleanup and research workflows?
 - Should Codex own repo/code maintenance for Ed and Abby?
+- What ClickUp update type should be piloted first under Standing Authority v0?
 
 ## 12. Rebuild minimum
 
 To rebuild Ed's current operating rules from scratch, start with:
 
 1. `docs/ED_CANON.md`
-2. `docs/ed_build-log.md`
-3. `docs/ed_feature-requests.md`
-4. Current ClickUp task list for active work
-5. Connected app permissions and current tool availability
+2. `docs/ed_standing-authority.md`
+3. `docs/ed_build-log.md`
+4. `docs/ed_feature-requests.md`
+5. Current ClickUp task list for active work
+6. Connected app permissions and current tool availability
 
 If these conflict, use this priority order:
 
 1. Explicit current instruction from Ernie
 2. `docs/ED_CANON.md`
-3. `docs/ed_build-log.md`
-4. ClickUp active tasks for work state
-5. Feature requests file for candidate ideas only
-6. Archived/old docs for historical evidence only
+3. `docs/ed_standing-authority.md`
+4. `docs/ed_build-log.md`
+5. ClickUp active tasks for work state
+6. Feature requests file for candidate ideas only
+7. Archived/old docs for historical evidence only
