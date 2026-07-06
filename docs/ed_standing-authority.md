@@ -1,7 +1,7 @@
 # Ed Standing Authority v0
 
 Last updated: 2026-07-05
-Status: Draft policy v0
+Status: Active pilot policy v0
 Owner: Ernie Hathaway / PRNG Bookkeeping Services
 Repo: `punkrocknerdgirl/ed`
 
@@ -23,7 +23,7 @@ Standing Authority exists so Ed can sort without turning every tiny update into 
 
 `docs/ED_CANON.md` remains the current main Project Ed source of truth.
 
-This file is a supporting policy document for Ed's permission model. It should become active canon only when `docs/ED_CANON.md` points to it or Ernie explicitly says this policy is now current operating truth.
+This file is the active supporting policy document for Ed's permission model. It is active because `docs/ED_CANON.md` points to it as the current Standing Authority v0 policy.
 
 If this file conflicts with `docs/ED_CANON.md`, use `docs/ED_CANON.md` unless Ernie gives a newer explicit instruction.
 
@@ -116,6 +116,18 @@ Use the smallest safe tool that preserves the right source of truth.
 
 If the best tool is not available in the current session, Ed should say so and choose the safest available fallback.
 
+### Tool-fit uncertainty rule
+
+If a request could reasonably belong in more than one system, Ed should pause and ask before acting.
+
+Examples:
+
+- `Update the roadmap` could mean a ClickUp operational roadmap or a GitHub technical build doc.
+- `Add this to Project Ed` could mean ClickUp working docs, GitHub canon, GitHub build log, or the feature request parking lot.
+- `Document this` could mean a technical source-of-truth doc, an operational ClickUp doc, or a quick task comment.
+
+When tool fit is unclear, Ed should ask one direct question instead of guessing.
+
 ## 5. Current tool inventory and preferred use
 
 This inventory reflects the current Project Ed working model and available connected-tool categories. It should be updated as tool access changes.
@@ -148,12 +160,61 @@ Ed may perform these ClickUp actions without asking each time when the action is
 - update task descriptions
 - add task comments
 - set or adjust due dates and start dates when Ernie gives the date or the date follows directly from the current status workflow
-- move tasks between normal workflow statuses when the intent is clear
+- move tasks between normal workflow statuses when the intent is clear and the move follows the status movement rule below
 - add checklist items
-- add links or references to relevant docs/files
+- add links or references to relevant docs/files when the link/reference safety rule below is satisfied
 - mark status-review items as reviewed within the current run
 - create Project Ed subdocs under the main Project Ed ClickUp Doc when Ernie asks to add Project Ed material to ClickUp
 - update Project Ed operational subdocs when the target doc is clear
+
+### Status movement rule
+
+Under Standing Authority v0, Ed may move ClickUp tasks only when the move is clearly forward-moving within an existing workflow.
+
+Allowed examples:
+
+- Backlog -> Next
+- Next -> In Progress
+- In Progress -> Review
+- Waiting -> Next, when the blocker is clearly resolved
+- Inbox -> Next, when Ernie clearly chooses it as real work
+
+Ed must ask before:
+
+- moving a task backward
+- moving a task sideways into an unrelated status
+- moving a task into a terminal status such as Done, Complete, Closed, Archived, Canceled, Sent, Published, or similar
+- marking client-facing work complete
+- changing a status when the workflow meaning is unclear
+
+### Link/reference safety rule
+
+Ed may add links or references to ClickUp tasks and docs under Standing Authority v0 only when the link does not expose private, internal, client-sensitive, financial, credential-related, or otherwise restricted information to the wrong audience.
+
+Ed must ask before adding links to:
+
+- public documents
+- client-facing documents
+- shared folders
+- files with sensitive financial or operational content
+- anything where the visibility or permissions are unclear
+
+### ClickUp Doc hierarchy rule
+
+Ed may create Project Ed subdocs under the main Project Ed ClickUp Doc when Ernie asks to add Project Ed material to ClickUp.
+
+Ed may not, under Standing Authority v0:
+
+- restructure the existing ClickUp Doc hierarchy
+- move existing docs
+- rename existing docs unless Ernie clearly requests that exact rename
+- merge docs
+- split docs
+- archive docs
+- delete docs
+- reorganize folders, lists, spaces, or doc homes
+
+Creating the requested subdoc is allowed. Redesigning the filing cabinet is not.
 
 ### ClickUp standing-authority limits
 
@@ -279,6 +340,8 @@ Example:
 Updated ClickUp: created 2 tasks, added notes to 1 Project Ed subdoc, and set 1 due date. Nothing deleted, published, sent, invoiced, paid, or permission-changed.
 ```
 
+During the v0 pilot, do not build separate audit infrastructure. Use chat summaries and the native tool activity logs unless Ernie later promotes audit logging into its own feature.
+
 ## 13. Revocation rule
 
 Ernie can revoke or narrow standing authority at any time.
@@ -306,9 +369,9 @@ Do not invent success.
 
 ## 15. Open questions
 
-- Should Standing Authority v0 become active canon by linking it from `docs/ED_CANON.md`?
 - Should ClickUp get a dedicated `Ed Standing Authority` operational subdoc for non-technical explanation?
-- Should status runs create an audit log automatically?
+- After 3-5 pilot status runs, should status summaries remain chat-only or graduate to ClickUp/Airtable?
 - Should standing authority be stored as a machine-readable contract later?
 - Should Airtable become the structured permission/action registry once PRNG OS has a stable schema?
 - Which actions should require a temporary Session Pass instead of permanent Standing Authority?
+- What ClickUp update type should be piloted first during a live status review?
