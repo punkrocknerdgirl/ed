@@ -1,0 +1,7 @@
+{
+  "secret": "REPLACE_WITH_LOCAL_SECRET",
+  "action": "captureNote",
+  "text": "test note",
+  "source": "local test",
+  "category": "test"
+}}
