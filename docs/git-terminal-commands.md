@@ -89,3 +89,19 @@ Moves local `main` to exactly match `origin/main`. Only use after protecting loc
 \
 `git cherry-pick <commit>`\
 Copies one specific commit onto the current branch.}
+
+---
+
+## Divergent History / First-Time Setup
+
+`git push --set-upstream origin main`
+Links your local `main` branch to `origin/main` on GitHub so future `git push` (no flags) knows where to send commits. Needed once per branch, typically the first time you push a locally-created repo, or after a fresh `git init` that was never cloned from the remote.
+
+`git pull origin main --no-rebase --allow-unrelated-histories`
+Merges two branches that don't share a common commit ancestor — happens when a local folder was `git init`'d fresh (not cloned) but points at a GitHub repo that already has its own separate commit history. `--no-rebase` forces a true merge commit instead of rewriting history (safer to reason about than rebase). `--allow-unrelated-histories` overrides git's default refusal to merge two trees with no shared starting point.
+
+**If this opens Vim for a merge commit message:**
+Press `Esc`, type `:wq`, press `Enter`. This saves the default message and exits — you are not expected to write a custom message here.
+
+**If it instead reports `error: untracked working tree files would be overwritten by merge`:**
+This means files exist locally at the same path as files in the incoming history, but were never `git add`'d. Back them up first (`cp` to a folder outside the repo), delete the local untracked copies, then retry the pull. Do not delete without backing up first if the local copies might contain content the remote doesn't have — check with `git diff origin/main -- <file>` before deleting.
