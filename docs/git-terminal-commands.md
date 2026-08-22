@@ -105,3 +105,10 @@ Press `Esc`, type `:wq`, press `Enter`. This saves the default message and exits
 
 **If it instead reports `error: untracked working tree files would be overwritten by merge`:**
 This means files exist locally at the same path as files in the incoming history, but were never `git add`'d. Back them up first (`cp` to a folder outside the repo), delete the local untracked copies, then retry the pull. Do not delete without backing up first if the local copies might contain content the remote doesn't have — check with `git diff origin/main -- <file>` before deleting.
+
+\
+`How to reset Apps Script credintials.`\
+
+clasp logout
+Deleted credentials.
+clasp login
