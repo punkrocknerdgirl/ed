@@ -55,7 +55,7 @@ body{
 /* --rail is what the grip drags. Media queries below set the DEFAULT for a
    given window; an inline --rail set by the grip beats them, which is exactly
    the precedence we want -- Ernie's choice outranks the guess. */
-.board{--rail:272px; display:grid; gap:14px;
+.board{--rail:340px; display:grid; gap:14px;
   grid-template-columns:minmax(0,1fr) 9px var(--rail); align-items:start}
 
 /* ══ THE GRIP ══ drag to trade the rail against the board. Double-click resets.
@@ -73,13 +73,13 @@ body{
 /* Default rail width per window size. These are only starting points now --
    the grip overrides any of them, and Ernie's setting is remembered. */
 @media (max-width:1430px){
-  .board{--rail:236px; gap:12px}
+  .board{--rail:300px; gap:12px}
   .room{padding-left:14px;padding-right:14px}
 }
 /* Measured: at 1340px the longest project title needed 36px more than a log
    column had. The rail pays it, not the title. */
 @media (max-width:1364px){
-  .board{--rail:196px; gap:10px}
+  .board{--rail:250px; gap:10px}
   .log{gap:12px} .log > .col{gap:12px}
 }
 @media (max-width:1020px){ .board{grid-template-columns:1fr} }
@@ -87,7 +87,7 @@ body{
 /* ══ THE SIGN ══ The house name, hung over the whole room. It replaces the
    space Ed's full portrait used to eat: he is a regular now, not a billboard. */
 .sign{
-  position:relative;margin:0 0 16px;max-width:500px;padding:8px 26px;
+  position:relative;margin:0 0 16px;padding:8px 26px;
   text-align:center;border-radius:3px;
   background:linear-gradient(180deg,#3a2818,#1d130b);
   border:1px solid var(--gold-deep);
@@ -149,7 +149,10 @@ body{
 
 
 /* ══ THE SPILL ══ A thought goes in whatever shape it arrives in. Ed sorts it. */
-.spill{margin-top:20px}
+.spill{margin-top:0}
+/* Ed moved to the BOTTOM of the rail on 2026-08-23, so the breathing room that
+   used to sit above the Vault belongs above him now. */
+.rail .ed{margin-top:22px}
 .spill .cap{display:block;margin-bottom:10px;text-align:center;
   font-family:'Cinzel',Georgia,serif;font-size:.76rem;letter-spacing:.2em;
   text-transform:uppercase;color:var(--gold-dim)}
@@ -200,21 +203,29 @@ body{
 .nail.bl{left:9px;bottom:9px}.nail.br{right:9px;bottom:9px}
 
 /* ══ QUEST LOG ══ */
-/* Two independent columns, not a grid of equal-height rows. A short panel
-   stops where its content stops and the panel under it moves up to meet it. */
-.log{margin-top:16px;display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr));
+/* Main beside side, life spanning under both. A panel stops where its content
+   stops -- align-items:start, so the 11-note column does not stretch the 15-note
+   one to match. `wide` spans the full log, whatever the column count. */
+.log{display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr));
   align-items:start}
-.log > .col{display:flex;flex-direction:column;gap:16px;min-width:0}
-.log > .panel.wide{grid-column:span 2}
+.log > .panel.wide{grid-column:1 / -1}
 /* On a genuinely narrow window two columns stop being readable at all, so the
-   log folds to one. Nothing to do with wrapping any more -- that is Ernie's call
-   via the grip. This block must stay BELOW the base .log rule: same specificity,
-   so source order decides, and an identical query placed above it silently
-   loses. That bug cost a round trip; leave it here. */
+   log folds to one. This block must stay BELOW the base .log rule: same
+   specificity, so source order decides, and an identical query placed above it
+   silently loses. That bug cost a round trip; leave it here. */
 @media (max-width:1318px){
   .log{grid-template-columns:1fr}
-  .log > .panel.wide{grid-column:span 1}
 }
+
+/* ══ THE HEAD ══ sign and campaign sit ABOVE the split, spanning the whole
+   board -- the rail starts below them. Ernie's call 2026-08-23: the campaign is
+   the one thing that outranks the split, so it should not be boxed into a
+   column. ══ */
+/* The sign is the only thing that spans the whole board. The campaign sits at
+   the top of the CENTRE column instead -- which is what lets the rail start
+   level with it, so Ed is at the top of the board rather than pushed below a
+   full-width panel. Ernie's call 2026-08-23, third pass. */
+.head-stack{margin-bottom:16px}
 .panel .body.stack{display:flex;flex-direction:column;gap:10px}
 
 .note{position:relative;display:flex;align-items:center;gap:14px;
@@ -246,6 +257,8 @@ body{
 
 /* Dailies and repeatables are NOT dimmed. Different material, same legibility —
    if she can't see it, it won't get done. */
+.note.life{background:linear-gradient(160deg,#ece0bd,#d8c59c);color:var(--ink);
+  border:1px solid rgba(90,66,26,.4)}
 .note.daily{background:linear-gradient(165deg,#4a3d2c,#372c1f);color:var(--iron);
   border:1px solid var(--iron-edge)}
 .note.rep{background:linear-gradient(165deg,#4a3d2c,#372c1f);color:var(--iron);
@@ -277,11 +290,14 @@ body{
   font-family:'Cinzel',Georgia,serif;font-size:.64rem;letter-spacing:.13em;
   text-transform:uppercase;line-height:1.6;
   background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.14);color:#a89b82}
-.note.main .status,.note.side .status{
+/* Every note on this board is parchment now, so every badge takes the ink
+   treatment. `life` was missing from this list on 2026-08-23 and fell through to
+   the base rule above -- which is built for the DARK notes that no longer exist,
+   and rendered as a grey box with effectively invisible text on cream. The dead
+   `major` / `daily` / `rep` badge rules came out at the same time. If a new note
+   type is ever added, ADD IT HERE TOO or it inherits the dark-note styling. */
+.note.main .status,.note.side .status,.note.life .status{
   background:rgba(90,65,25,.13);border-color:rgba(120,90,40,.4);color:#75592c}
-.note.major .status{background:rgba(120,95,200,.2);
-  border-color:rgba(160,130,240,.4);color:#c4b1f2}
-.note.daily .status,.note.rep .status{color:#c4b391;border-color:rgba(200,180,140,.24)}
 
 /* ══ AGING ══ the only signal this board gives that time has passed.
    CONTINUOUS, not stepped (2026-08-23). `sat` is a real number 0-3 and the
@@ -324,14 +340,18 @@ body{
 <body>
 <div class="room">
 
+<!-- ═══ THE SIGN ═══ the only full-width thing on the board. ═══ -->
+<div class="head-stack">
+  <header class="sign"><h1>Ed's Tavern &amp; Haberdashery</h1></header>
+</div>
+
 <div class="board">
 
-  <!-- ═══ CENTRE ═══ the sign hangs at the left, over the work itself ═══ -->
+  <!-- ═══ CENTRE ═══ the campaign, then the quest log: main beside side,
+       life under both. The campaign stops where the rail begins. ═══ -->
   <div>
-    <header class="sign"><h1>Ed's Tavern &amp; Haberdashery</h1></header>
-
-    <div class="panel">
-      <span class="cap">The Main Quest</span>
+    <div class="panel" style="margin-bottom:16px">
+      <span class="cap">The Campaign</span>
       <div class="body" style="padding:0">
         <div class="mainquest">
           <span class="nail tl"></span><span class="nail tr"></span>
@@ -345,6 +365,7 @@ body{
         </div>
       </div>
     </div>
+
     <div class="log" id="log"></div>
   </div>
 
@@ -352,12 +373,30 @@ body{
        tabindex="0" aria-label="Drag to resize the rail; double-click to reset"
        title="Drag to resize · double-click to reset"></div>
 
-  <!-- ═══ THE RAIL ═══ Ed, then his line, then capture, then the Listener.
-       Top to bottom this is one loop: he tells you the thing, you dump whatever
-       the thing knocked loose, and the crystal says whether it still needs
-       filing. The Shield came out on 2026-08-23 — good idea, not yet earned its
-       space, and if it is never missed it was never necessary. ═══ -->
+  <!-- ═══ THE RAIL ═══ Vault, then the Listener, then Ed with his bell.
+       Reordered 2026-08-23, Ernie's call. The Vault is the only thing here she
+       puts INTO, so it takes the top where her cursor already is; the crystal is
+       a glance, not a read; and Ed keeps the bottom with the bell beside him,
+       because the bell is the thing you reach for on purpose rather than by
+       habit. The side quests were tried in this rail earlier the same session
+       and moved back out — 15 notes at 272px wrap to three lines each, and the
+       notes box is what actually needed the width. ═══ -->
   <div class="rail">
+    <div class="spill">
+      <span class="cap">Add to Vault</span>
+      <textarea id="spillbox" rows="3"
+        placeholder="Whatever just crossed your mind. Shape doesn't matter."></textarea>
+      <button class="drop" id="drop" type="button">Drop it</button>
+    </div>
+
+    <div class="panel violet" id="listener">
+      <span class="cap">The Listener</span>
+      <div class="body lswrap">
+        <img id="lsimg" src="assets/listener.png" alt="The Listener, a faceted crystal on silver chains">
+        <div class="lssay" id="lssay"></div>
+      </div>
+    </div>
+
     <div class="ed">
       <div class="frame">
         <img id="edimg" src="assets/ed-square.png" alt="Ed, the innkeeper, behind his bar">
@@ -378,21 +417,6 @@ body{
     </div>
 
     <div class="scroll" id="edline"></div>
-
-    <div class="spill">
-      <span class="cap">Add to Vault</span>
-      <textarea id="spillbox" rows="3"
-        placeholder="Whatever just crossed your mind. Shape doesn't matter."></textarea>
-      <button class="drop" id="drop" type="button">Drop it</button>
-    </div>
-
-    <div class="panel violet" id="listener">
-      <span class="cap">The Listener</span>
-      <div class="body lswrap">
-        <img id="lsimg" src="assets/listener.png" alt="The Listener, a faceted crystal on silver chains">
-        <div class="lssay" id="lssay"></div>
-      </div>
-    </div>
   </div>
 
 </div>
@@ -416,27 +440,18 @@ const BOARD = {
     // bends days-untouched onto this scale, on a clock that differs per column,
     // so 1.0 / 2.0 / 3.0 land on the thresholds Ernie chose. Rendered as wear
     // ONLY: never printed, never counted, never turned back into a date.
-    { type:"main",  text:"Close the month — July 2026",           status:"In Progress", sat:0 },
-    { type:"main",  text:"Review &amp; reconcile all accounts", status:"Open",        sat:0 },
-    { type:"main",  text:"Finalize &amp; archive July 2026",                          sat:0 },
+    // Synthetic. Deliberately carries no client name — this file is TRACKED in
+    // a public repo, and the real board is board-data.js, which is not.
+    { type:"main",  text:"Run payroll",                 status:"Recurring",   sat:0 },
+    { type:"main",  text:"Process the week's tickets",  status:"Recurring",   sat:1.4 },
+    { type:"main",  text:"Bill clients",                status:"Pending",     sat:0 },
 
-    // Major: ONE note per project — its latest open task. Where every build
-    // currently stands, at a glance. Not a task list.
-    { type:"major", thread:"Diane",   text:"Ticket OCR validation pass", status:"In Progress", sat:1 },
-    { type:"major", thread:"Ed",      text:"Wire the board to ClickUp",  status:"In Progress", sat:0 },
-    { type:"major", thread:"Portal",  text:"Client hubs, phase 2",       status:"Blocked",     sat:2 },
+    { type:"life",  text:"Mail the parcel back",        status:"Next",        sat:0 },
+    { type:"life",  text:"Book the appointment",        status:"Next",        sat:2.1 },
 
-    { type:"side",  text:"Clean up old categories",  status:"Open",        sat:3 },
-    { type:"side",  text:"Update vendor records",    status:"In Progress", sat:1 },
-    { type:"side",  text:"Refine reports packages",                        sat:1 },
-
-    { type:"daily", text:"Check for new transactions", sat:0 },
-    { type:"daily", text:"Triage the night\u2019s record",         sat:0 },
-    { type:"daily", text:"Client follow-up sweep",     sat:0 },
-
-    { type:"rep",   text:"Weekly invoice run",  sat:0 },
-    { type:"rep",   text:"Payroll check-in",    sat:0 },
-    { type:"rep",   text:"Vendor maintenance",  sat:1 }
+    { type:"side",  text:"Clean up old categories",     status:"Pending",     sat:3 },
+    { type:"side",  text:"Update vendor records",       status:"Waiting",     sat:1 },
+    { type:"side",  text:"Refine reports packages",     status:"Pending",     sat:1.7 }
   ]
 };
 
@@ -445,38 +460,41 @@ const BOARD = {
 if (window.BOARD_DATA) Object.assign(BOARD, window.BOARD_DATA);
 
 
-/* How many projects show. The rest live in the ledger — a detail page, later.
-   Three is the cap because the column is a glance, not an index. */
-const MAJOR_SHOWN = 3;
+/* Rebuilt 2026-08-23. The TAG decides the column, so this table is the whole
+   taxonomy — there is nothing else to keep in sync. `campaign` is deliberately
+   absent: it is the parchment at the top, not a note in a panel.
 
-/* Two rows of wide panels rather than five narrow ones — a note needs room to
-   be a sentence, not a stack of two words. 6-col grid: 2+2+2 then 3+3. */
-/* [type, heading, tone, where] — 'a' and 'b' are the two columns, 'wide' spans. */
+   RETIRED HERE: major (read ClickUp folders, which no longer exist), daily and
+   rep (needed tags that were never created, and rep's fallback to the
+   `recurring` STATUS double-rendered six main-tagged tasks).
+
+   [type, heading, tone, wide] — the log is a two-column grid and panels flow
+   into it in order, so main takes the left, side the right. `wide` spans both. */
 const COLS = [
-  ["main",  "Main Quest Line",   "",      "a"],
-  ["major", "Major Quest Lines", "violet","a"],
-  ["side",  "Side Quests",       "",      "b"],
-  ["daily", "Dailies",           "iron",  "b"],
-  ["rep",   "Repeatables",       "iron",  "b"]
+  ["main", "Main Quests", "",       false],
+  ["side", "Side Quests", "",       false],
+  ["life", "Life Quests", "violet", true ]
 ];
 
 document.getElementById('mqTitle').innerHTML = BOARD.mainQuest.title.replace(/\n/g,'<br>');
 document.getElementById('mqDays').textContent = BOARD.mainQuest.daysRemaining;
-document.getElementById('edline').innerHTML = BOARD.ed.replace(/\n/g,'<br>');
+/* An empty line means Ed says nothing at all -- no empty scroll, no stub.
+   Silence is a state, not a missing value. Give BOARD.ed text again and the
+   scroll comes straight back. */
+const edline = document.getElementById('edline');
+if (BOARD.ed && BOARD.ed.trim()) {
+  edline.innerHTML = BOARD.ed.replace(/\n/g,'<br>');
+} else {
+  edline.remove();
+}
 
 document.getElementById('lssay').textContent = BOARD.listener.line;
 if (!BOARD.listener.waiting) document.getElementById('listener').classList.add('dark');
 
 const log = document.getElementById('log');
-const colA = document.createElement('div'); colA.className = 'col';
-const colB = document.createElement('div'); colB.className = 'col';
 
-for (const [type, head, tone, where] of COLS) {
-  let items = BOARD.quests.filter(q => q.type === type);
-  let overflow = false;
-  if (type === 'major' && items.length > MAJOR_SHOWN) {
-    items = items.slice(0, MAJOR_SHOWN); overflow = true;
-  }
+for (const [type, head, tone, wide] of COLS) {
+  const items = BOARD.quests.filter(q => q.type === type);
   const panel = document.createElement('div');
   panel.className = 'panel' + (tone ? ' ' + tone : '');
   const body = document.createElement('div');
@@ -499,38 +517,19 @@ for (const [type, head, tone, where] of COLS) {
         'inset 0 0 20px -4px rgba(92,60,24,' + (0.55 * (w - 2)).toFixed(2) +
         '), 0 6px 13px rgba(0,0,0,.48)';
     }
-    if (type === 'major') {
-      // Project, then its status, then the task, then how far the line has come.
-      // Stacked rather than run together: the task gets a full line to itself,
-      // which is the only way a real project title fits without wrapping.
-      n.innerHTML =
-        '<span class="head">' +
-          '<span class="thread">' + (q.thread || '') + '</span>' +
-          (q.status ? '<span class="status">' + q.status + '</span>' : '') +
-        '</span>' +
-        '<span class="txt">' + q.text + '</span>' +
-        (q.tally ? '<span class="tally">' + q.tally + '</span>' : '');
-    } else {
-      n.innerHTML =
-        (type === 'main' ? '<span class="seal">♚</span>' : '<span class="pin"></span>') +
-        (type === 'rep' ? '<span class="cycle">↻</span>' : '') +
-        '<span class="txt">' + q.text + '</span>' +
-        (q.status ? '<span class="status">' + q.status + '</span>' : '');
-    }
+    // One note shape for every column. The seal marks the work that pays;
+    // everything else takes a pin.
+    n.innerHTML =
+      (type === 'main' ? '<span class="seal">♚</span>' : '<span class="pin"></span>') +
+      '<span class="txt">' + q.text + '</span>' +
+      (q.status ? '<span class="status">' + q.status + '</span>' : '');
     body.appendChild(n);
   }
-  if (overflow) {
-    const m = document.createElement('a');
-    m.className = 'more'; m.href = '#';
-    m.textContent = 'the rest are in the ledger';
-    body.appendChild(m);
-  }
+  if (wide) panel.classList.add('wide');
   panel.innerHTML = '<span class="cap">' + head + '</span>';
   panel.appendChild(body);
-  (where === 'a' ? colA : where === 'b' ? colB : log).appendChild(panel);
+  log.appendChild(panel);
 }
-// The two half-width columns sit under whatever wide panels were emitted above.
-log.appendChild(colA); log.appendChild(colB);
 
 /* The bell is a plain link to a bare claude:// — verified to bring the app
    forward WITHOUT touching the open conversation. Nothing on this board starts
@@ -597,28 +596,50 @@ grip.addEventListener('keydown', e => {
 
 /* THE SPILL. The board holds no credentials and reaches nothing on its own --
    same rule as the bell. So "Drop it" copies the thought as an instruction and
-   rings Ed, and Ed is the one who writes it to Admin > Inbox. Ernie spills;
-   Ed sorts. Wiring this straight into ClickUp means a token, and a token means
-   the local caller, not this file. */
-const SPILL_PREFIX = "File this in ClickUp under Admin > Inbox, exactly as written: ";
+   rings Ed, and Ed is the one who writes it. Ernie spills; Ed files.
+
+   Retargeted 2026-08-23 from Admin > Inbox to the JOURNAL doc, which is what the
+   Listener actually reads. Ernie's call, having weighed the alternative: wiring
+   this straight into ClickUp needs a token, and the only place to put a token is
+   inside a file designed to be opened from anywhere. That is the exact shape of
+   the credential that sat in a public repo for two months. The board stays dumb
+   ON PURPOSE -- it holds nothing and reaches nothing.
+
+   The doc is named, never ID'd: this file is TRACKED and PUBLIC, and a session
+   with the ClickUp MCP can find "Journal" by name in one search.
+
+   The date is stamped HERE, in Ernie's own browser, rather than left for the
+   session to work out -- a session may be running in another timezone, and the
+   whole point of a journal is that the date is the one thing that must be right. */
+const stamp = () => {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+                         + '-' + String(d.getDate()).padStart(2, '0');
+};
+const SPILL_PREFIX = () =>
+  'Append this to the ClickUp doc "Journal", page "Notes", under a heading for '
+  + stamp() + ' at the TOP of the page. Create that heading if it is not already '
+  + 'there. APPEND ONLY: read the page first and never overwrite or reorder '
+  + 'anything already in it. The entry, verbatim:\n\n';
 const spillbox = document.getElementById('spillbox');
 const drop = document.getElementById('drop');
 drop.addEventListener('click', async () => {
   const thought = spillbox.value.trim();
   if (!thought) { spillbox.focus(); return; }
   let ok = false;
-  try { await navigator.clipboard.writeText(SPILL_PREFIX + thought); ok = true; }
+  const payload = SPILL_PREFIX() + thought;
+  try { await navigator.clipboard.writeText(payload); ok = true; }
   catch (e) {
     try {
       const t = document.createElement('textarea');
-      t.value = SPILL_PREFIX + thought; t.style.position='fixed'; t.style.opacity='0';
+      t.value = payload; t.style.position='fixed'; t.style.opacity='0';
       document.body.appendChild(t); t.select();
       ok = document.execCommand('copy'); document.body.removeChild(t);
     } catch (e2) { ok = false; }
   }
   if (ok) {
     spillbox.value = '';
-    drop.textContent = 'Copied — ring Ed and paste';
+    drop.textContent = 'Copied — ring Ed to file it';
     window.location.href = 'claude://';
   } else {
     drop.textContent = 'Copy failed — keep the text';

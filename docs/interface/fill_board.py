@@ -1,46 +1,60 @@
 #!/usr/bin/env python3
 """
-fill_board.py — the seam, filled.
+fill_board.py -- the seam, filled. TAG-DRIVEN as of 2026-08-23.
 
 Reads a ClickUp dump and writes board-data.js, which defines window.BOARD_DATA.
 quest-board-v1.html loads that file if it is there, and falls back to its own
 placeholder BOARD if it is not. Nothing else on the page changes.
 
-WHAT EACH COLUMN ANSWERS (decided with Ernie, 2026-08-23)
+WHAT DECIDES WHERE A TASK GOES (rebuilt with Ernie, 2026-08-23)
 
-  Main quest line   The quest itself never changes -- reports out by the 15th,
-                    and she knows it by heart. So the column does not list the
-                    steps. It shows ONE note: the next immediate thing that
-                    moves it forward.
-  Major quest lines One note per project: its next available quest, plus a
-                    tally of how far that line has come. A project with nothing
-                    live still shows, because a stalled build is exactly the
-                    drift this column exists to catch.
-  Side quests       Admin, live only.
-  Dailies           Admin tagged `daily` -- NO SUCH TAG EXISTS IN CLICKUP YET,
-  Repeatables       Admin tagged `repeat` -- so repeatables fall back to the
-                    `recurring` STATUS and dailies come up empty. Open question.
+  THE TAG. Not the list, not the folder, not the space. A task tagged `main`
+  renders as a main quest whether it lives in a client list, the Quest Log, or
+  anywhere else that exists later. This replaces the old structure, which read
+  ClickUp FOLDERS in PRNG Creative -- folders that no longer exist.
 
-WHAT EARNS A SPOT: only live work. `pending` is backlog, `parked` is shelved;
-both stay in ClickUp. The statuses already carry this, so nothing new to keep up.
+    campaign   ONE quest, the standing one, rendered as the big parchment at
+               the top. Not a note; it has no column.
+    main       Main Quests. The work that pays.
+    life       Life Quests. Personal. Sits directly under main, deliberately
+               its own panel rather than mixed in -- Ernie tagged them apart,
+               so the board keeps them apart.
+    side       Side Quests.
 
-WHAT THE DUMP MUST CARRY (changed 2026-08-23, when aging was wired)
+  A task carrying more than one of these lands in exactly one column, resolved
+  campaign > main > life > side. Untagged tasks do not render at all -- which means the
+  board can never show something Ernie did not deliberately put on it.
 
-  Every task needs `date_updated` -- ClickUp's epoch-millisecond last-touched
-  stamp. It is what aging runs on, and WITHOUT IT EVERY NOTE RENDERS BRAND NEW,
-  which is exactly the state this board sat in until now.
+  RETIRED THIS REBUILD: `major` (read folders, which are gone), `daily` and
+  `rep` (needed tags that never existed, and `rep`'s fallback to the `recurring`
+  STATUS double-rendered six main-tagged tasks).
+
+WHAT EARNS A SPOT (changed 2026-08-23 -- read this before "fixing" it)
+
+  Everything tagged, unless it has been PUT AWAY: done, closed, complete,
+  parked. `pending` and `waiting` are ordinary live work and DO render.
+
+  The old rule was the reverse -- LIVE = {in progress, next, recurring} -- and it
+  was written when lists carried the taxonomy. Run the tags through it and 14 of
+  15 side quests vanish, along with three urgent main quests. The tag now says
+  whether a thing belongs on the board; the status only says whether it has been
+  shelved.
+
+WHAT THE DUMP MUST CARRY
+
+  A flat `tasks` list. Every task needs `date_updated` -- ClickUp's
+  epoch-millisecond last-touched stamp. It is what aging runs on, and WITHOUT IT
+  EVERY NOTE RENDERS BRAND NEW.
 
   It cannot come from the same call as the rest. `clickup_filter_tasks` does not
   return the field at all -- verified 2026-08-23, not assumed -- while
   `clickup_get_task` on the very same task returns it. So building the dump costs
   one extra per-task fetch for anything that will render. An MCP gap, not a
-  design gap; if the filter ever starts returning it, the extra pass just stops
-  being needed and nothing here changes.
+  design gap.
 
   A task with no `date_updated` ages to nothing rather than guessing.
 """
 import json, html, sys, os, base64, re, datetime
-from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DUMP = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "clickup_dump.json")
@@ -50,34 +64,27 @@ d = json.load(open(DUMP))
 TODAY = datetime.date.fromisoformat(d["fetched"])
 
 PRIO = {"urgent": 0, "high": 1, "normal": 2, "low": 3, None: 4}
-LIVE = {"in progress", "next", "recurring"}
-DONE = {"complete", "closed", "done"}
-# A major quest line is a ClickUp FOLDER in PRNG Creative that is genuinely
-# multi-step. A folder holding one lone task is a task someone filed in a
-# folder, not a project, and it does not belong in this column. Raise or lower.
-MULTISTEP = 2
-# where a build currently stands, most-alive first
-STATUS_RANK = {"in progress": 0, "next": 1, "recurring": 2, "waiting": 3,
-               "pending": 4, "parked": 5}
+SHELVED = {"done", "closed", "complete", "parked"}
 
-# ── Aging ── the only signal this board may give that time has passed ────────
+# Columns, in resolution order. A task takes the first one it carries.
+COLUMNS = ["campaign", "main", "life", "side"]
+
+# -- Aging -- the only signal this board may give that time has passed --------
 # Rule 5 forbids overdue, red, and counting; the brief allows exactly one thing:
 # "an old quest just looks old." It renders as wear -- yellowing and a lifting
 # corner -- and is never printed, never counted, never turned back into a date.
 #
-# The clock runs PER COLUMN, decided with Ernie 2026-08-23. A single flat rate
-# does not work here: a daily untouched four days is drift, while the same four
-# days on a months-long build is a Tuesday. One rate would render every daily
-# fully aged and every major quest line permanently crisp -- which inverts the
-# signal instead of carrying it.
+# The clock runs PER COLUMN. Ernie's thresholds from 2026-08-23, carried forward
+# unchanged through the tag rebuild: a flat rate inverts the signal, because the
+# same four days means something different on a payroll run than on a blog post.
 #
 # Days untouched at which a note reaches wear level 1 / 2 / 3.
 AGE_STEPS = {
-    "main":  (2, 5, 10),     # the thing that pays. Sitting is the worst kind.
-    "major": (14, 30, 60),   # builds move in weeks; two months is abandoned.
-    "side":  (7, 14, 30),
-    "daily": (1, 2, 4),
-    "rep":   (3, 7, 14),     # a weekly thing at 7 days is due, at 14 it slipped.
+    "main": (2, 5, 10),    # the work that pays. Sitting is the worst kind.
+    "life": (3, 7, 14),    # PROVISIONAL -- Claude's pick, never tuned with
+                           # Ernie. An errand rots faster than a blog post but
+                           # slower than a payroll run. Change it on sight.
+    "side": (7, 14, 30),
 }
 
 def sat(kind, updated_ms):
@@ -88,7 +95,7 @@ def sat(kind, updated_ms):
 
     Unknown or missing stamp ages to 0: a note never invents age it cannot show
     its work for."""
-    if not updated_ms:
+    if not updated_ms or kind not in AGE_STEPS:
         return 0
     days = (TODAY - datetime.date.fromtimestamp(int(updated_ms) / 1000)).days
     a, b, c = AGE_STEPS[kind]
@@ -108,90 +115,55 @@ def due_key(t):
 def due_date(t):
     return datetime.date.fromtimestamp(int(t["due_date"]) / 1000) if t.get("due_date") else None
 
-# ── Main quest line ── one note: the next immediate step ─────────────────────
-# Client work plus the Books list, which is where the reports themselves live.
-feeds_main = [t for t in d["clients"] if t["status"] in LIVE] + \
-             [t for t in d["admin"] if t["status"] in LIVE and t["list"] == "Books"]
-feeds_main.sort(key=lambda t: (due_key(t), PRIO[t.get("priority")]))
-step = feeds_main[0] if feeds_main else None
-main_q = ([{"type": "main", "text": esc(step["name"]),
-            "status": nice(step["status"]),
-            "sat": sat("main", step.get("date_updated"))}] if step else [])
+# -- Sort every task into exactly one column by its tag -----------------------
+buckets = {c: [] for c in COLUMNS}
+skipped_shelved = 0
+skipped_untagged = 0
 
-# ── Major quest lines ── next available quest per project, plus a tally ──────
-# A major quest note is a STATUS STRIP for a whole project, so it ages off when
-# the PROJECT last moved -- the newest stamp anywhere in the folder -- not off
-# its lead task. Otherwise a folder whose front task happens to get retitled
-# reads as alive while the build behind it has not moved in a month, and a
-# folder with nothing queued could never age at all. The stalled build is the
-# exact drift this column exists to catch.
-tally = Counter()
-total = Counter()
-touched = {}
-for t in d["creative_all"]:
-    total[t["folder"]] += 1
-    if t["status"] in DONE:
-        tally[t["folder"]] += 1
-    u = t.get("date_updated")
-    if u and int(u) > int(touched.get(t["folder"]) or 0):
-        touched[t["folder"]] = u
-
-open_by_folder = {}
-for t in d["creative"]:
-    open_by_folder.setdefault(t["folder"], []).append(t)
-
-major_q = []
-for folder in total:
-    if total[folder] < MULTISTEP:
+for t in d["tasks"]:
+    if (t.get("status") or "").lower() in SHELVED:
+        skipped_shelved += 1
         continue
-    tasks = sorted(open_by_folder.get(folder, []),
-                   key=lambda t: STATUS_RANK.get(t["status"], 9))
-    lead = tasks[0] if tasks else None
-    major_q.append({
-        "type": "major",
-        "thread": folder.replace("Project ", ""),
-        "text": esc(lead["name"]) if lead else "Nothing queued.",
-        "status": nice(lead["status"]) if lead else "Clear",
-        "tally": "%d of %d" % (tally[folder], total[folder]),
-        "sat": sat("major", touched.get(folder)),
-        "_rank": STATUS_RANK.get(lead["status"], 9) if lead else 99,
-    })
-# lines that are actually moving come first; finished ones fall to the ledger
-major_q.sort(key=lambda q: q.pop("_rank"))
-
-# ── Admin ── side quests, dailies, repeatables ───────────────────────────────
-# Starter dailies. Placeholders until the real ones are named and tagged in
-# ClickUp -- at which point this list goes away and the `daily` branch below
-# takes over on its own.
-STARTER_DAILIES = ["Check email", "Check messages", "Check for new transactions"]
-
-rep_q, daily_q, side_q = [], [], []
-for t in d["admin"]:
-    if t["status"] not in LIVE:
-        continue
-    if step and t["id"] == step["id"]:
-        continue                      # already standing as the main quest step
     tags = [x.lower() for x in t.get("tags", [])]
-    note = {"text": esc(t["name"]), "status": nice(t["status"])}
-    u = t.get("date_updated")
-    if "daily" in tags:
-        daily_q.append({"type": "daily", "sat": sat("daily", u), **note})
-    elif "repeat" in tags or t["status"] == "recurring":
-        rep_q.append({"type": "rep", "sat": sat("rep", u), **note})
+    for c in COLUMNS:
+        if c in tags:
+            buckets[c].append(t)
+            break
     else:
-        side_q.append({"type": "side", "sat": sat("side", u), **note})
+        skipped_untagged += 1
 
-if not daily_q:
-    daily_q = [{"type": "daily", "text": esc(t), "sat": 0} for t in STARTER_DAILIES]
+# Soonest due first, then priority. A task with no due date sorts after ones
+# that have them -- a date is a commitment, a priority is only an opinion.
+for c in COLUMNS:
+    buckets[c].sort(key=lambda t: (due_key(t), PRIO.get(t.get("priority"), 4)))
 
-# ── The parts ClickUp does not own ───────────────────────────────────────────
+def note(t, kind):
+    return {"type": kind,
+            "text": esc(t["name"]),
+            "status": nice(t.get("status") or ""),
+            "sat": sat(kind, t.get("date_updated"))}
+
+main_q = [note(t, "main") for t in buckets["main"]]
+life_q = [note(t, "life") for t in buckets["life"]]
+side_q = [note(t, "side") for t in buckets["side"]]
+
+# -- The campaign quest -- the standing one, top of the board -----------------
+# It is not a note and has no column. If nothing is tagged `campaign` the board
+# says so plainly rather than inventing one or leaving a blank parchment.
+camp = buckets["campaign"][0] if buckets["campaign"] else None
+camp_title = esc(camp["name"]) if camp else "No campaign set.\nTag one in ClickUp."
+
+# -- The parts ClickUp does not own -------------------------------------------
 y, m = TODAY.year, TODAY.month
 target = datetime.date(y, m, 15) if TODAY.day <= 15 else \
          datetime.date(y + (m == 12), 1 if m == 12 else m + 1, 15)
 days_left = (target - TODAY).days
 
-# Ed does not repeat the note beside him, and he NEVER carries a count --
-# rule 7: a number on the board is a scoreboard, and a scoreboard is a stick.
+# Ed points at ONE thing: the soonest main quest. He does not repeat the
+# campaign beside him, and he NEVER carries a count -- rule 7: a number on the
+# board is a scoreboard, and a scoreboard is a stick.
+step = buckets["main"][0] if buckets["main"] else None
+
 def ed_line(step, days_left):
     if not step:
         return "Board's clear. Pick the thing you keep walking past."
@@ -202,20 +174,44 @@ def ed_line(step, days_left):
         return "That's today's. Everything else can wait an hour."
     return "%d days to the 15th. One thing at a time." % days_left
 
+# -- The Listener -- a one-bit lamp, and now actually wired -------------------
+# It is NOT a display. It answers one question: is there a night's record sitting
+# in Admin > Inbox that Ernie has not triaged yet. Lit = yes, dark = no.
+#
+# Until 2026-08-23 this was hardcoded False, so it said "nothing waiting"
+# forever whether or not anything was -- a lamp with the wire cut, and worse than
+# no lamp, because a lamp that cannot turn on still reads as information.
+#
+# It matches on the TITLE the Listener agent is specified to carve, not on "any
+# open Inbox task" -- the Inbox holds other things, and lighting the crystal for
+# those would make it mean something other than what it says.
+TRIAGE = "triage the night's record"
+waiting = [t for t in d.get("inbox", [])
+           if (t.get("status") or "").lower() not in SHELVED
+           and t.get("name", "").strip().lower().startswith(TRIAGE)]
+
+# No count in the line. Rule 7: a number on the board is a scoreboard, and a
+# scoreboard is a stick. The crystal says whether, never how many.
 BOARD = {
-    "mainQuest": {"title": "Reports Out by the 15th", "daysRemaining": days_left},
-    "ed": ed_line(step, days_left),
-    "listener": {"waiting": False, "line": "Nothing waiting to be triaged."},
-    "quests": main_q + major_q + side_q + daily_q + rep_q,
+    "mainQuest": {"title": camp_title, "daysRemaining": days_left},
+    # Ed is QUIET, Ernie's call 2026-08-23. The board carries the information
+    # now, so a line from him was a second voice saying what the notes already
+    # say. ed_line() is kept, not deleted -- the capability is still here and
+    # this is a one-word change back. Return "" and the scroll hides itself.
+    "ed": "",
+    "listener": {"waiting": bool(waiting),
+                 "line": "A record is waiting to be triaged." if waiting
+                         else "Nothing waiting to be triaged."},
+    "quests": main_q + life_q + side_q,
 }
 
 with open(OUT, "w") as f:
-    f.write("/* Generated by fill_board.py from ClickUp — %s. Do not edit by hand.\n"
+    f.write("/* Generated by fill_board.py from ClickUp -- %s. Do not edit by hand.\n"
             "   Practice-internal: carries client names. Never commit, never deploy. */\n"
             % d["fetched"])
     f.write("window.BOARD_DATA = " + json.dumps(BOARD, indent=2, ensure_ascii=False) + ";\n")
 
-# ── Bake a standalone copy ───────────────────────────────────────────────────
+# -- Bake a standalone copy ---------------------------------------------------
 # quest-board-v1.html is the SOURCE: it points at assets/ and board-data.js, which
 # keeps the repo clean and diffable. But a file that only works from one folder
 # gets opened from Downloads and looks broken. So we also emit one self-contained
@@ -248,6 +244,10 @@ if os.path.exists(TEMPLATE):
           % (STANDALONE, os.path.getsize(STANDALONE) / 1024))
 
 print("wrote %s" % OUT)
-for k, v in [("main", main_q), ("major", major_q), ("side", side_q),
-             ("daily", daily_q), ("rep", rep_q)]:
-    print("  %-6s %2d" % (k, len(v)))
+print("  campaign  %s" % (esc(camp["name"]) if camp else "-- none tagged --"))
+print("  main    %2d" % len(main_q))
+print("  life    %2d" % len(life_q))
+print("  side    %2d" % len(side_q))
+print("  listener %s" % ("LIT -- record waiting" if waiting else "dark -- nothing waiting"))
+print("  shelved %2d skipped (done/closed/parked)" % skipped_shelved)
+print("  untagged%2d skipped" % skipped_untagged)

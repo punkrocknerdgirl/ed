@@ -7,7 +7,18 @@ Started 2026-08-23.
 
 ---
 
-## OPEN — Project Ed no longer appears on its own board
+## OPEN (RESTATED 2026-08-23) — Project Ed no longer appears on its own board
+
+**The mechanism below is obsolete; the problem is not.** The `major` column and
+`MULTISTEP` were both retired in the tag rebuild, so the folder-threshold rule
+described here no longer exists. Under tags the fix is trivial and manual:
+**tag a Project Ed task `main` or `side` and it renders.** Nothing is filtering
+it out any more — nothing is tagging it in. Left open because the board that
+tracks this build still does not show this build.
+
+*Original entry, kept for the history:*
+
+### (obsolete mechanism) folder threshold
 
 **Shows up as:** the Major Quest column renders two lines. Project Ed is not one
 of them, and there is no overflow marker to say it was dropped.
@@ -27,7 +38,18 @@ lower `MULTISTEP`, or special-case the folder the board itself belongs to.
 
 Opened 2026-08-23.
 
-## OPEN — the drift blind spot is dormant, not fixed
+## RESOLVED 2026-08-23 — the drift blind spot is gone with the column
+
+`MAJOR_SHOWN`, the most-alive-first sort, and the whole `major` column were
+removed in the tag rebuild. There is no cap and no overflow marker because there
+is no longer a column that could hide anything. **Resolved by deletion, not by
+fix** — if a project-rollup column is ever rebuilt, re-read this entry first,
+because the blind spot is a property of "cap a list sorted by liveliness" and
+will come straight back with it.
+
+*Original entry:*
+
+### (retired) the drift blind spot is dormant, not fixed
 
 **Shows up as:** it does not, currently.
 
@@ -45,7 +67,16 @@ untouched and will bite again the moment a fourth project folder exists.**
 
 Opened 2026-08-23.
 
-## OPEN — placeholder board asserts invented statuses for real projects
+## RESOLVED 2026-08-23 — placeholder board asserted invented statuses
+
+Rebuilt with synthetic entries that name no project and no client — three
+`main`, two `life`, three `side`, with wear values spread so the fallback also
+demonstrates aging. Swept clean with a word-boundary search carrying both a
+positive control and a decoy.
+
+*Original entry:*
+
+### (fixed) placeholder board asserts invented statuses for real projects
 
 **Shows up as:** never renders. `Object.assign(BOARD, window.BOARD_DATA)`
 replaces the whole quest list whenever `board-data.js` is present.
@@ -64,7 +95,17 @@ The remaining three were left deliberately.
 
 Opened 2026-08-23.
 
-## OPEN — dailies are still hardcoded placeholders
+## RESOLVED 2026-08-23 — dailies are gone, placeholders with them
+
+The `daily` and `rep` columns were retired in the tag rebuild and
+`STARTER_DAILIES` was deleted. `rep` is worth recording as a near-miss: it fell
+back to the `recurring` **status**, and six `main`-tagged tasks carry that
+status — so keeping the column would have rendered six payroll and weekly-review
+tasks **twice**, once in each column. Caught before it shipped.
+
+*Original entry:*
+
+### (retired) dailies are still hardcoded placeholders
 
 **Shows up as:** the Dailies column always renders the same three notes, always
 at zero wear, regardless of anything in ClickUp.
@@ -96,7 +137,21 @@ Project doc. The repo copy has no pointer to it.
 
 Carried from the 2026-08-23 doc cleanup. Still open.
 
-## OPEN — `.env` from the retired local runner sits in Google Drive
+## RESOLVED 2026-08-23 — `.env` from the retired local runner, trashed
+
+Trashed from Drive (recoverable 30 days). Verified before: single permission
+entry, owner only. Verified after with a control — the same query shape still
+returns `.env.example` from that folder, so the empty result on `.env` means
+something.
+
+**Its siblings were left.** The `ed-action-runner` folder still holds
+`__pycache__`, `logs/`, `actions/`, `config/`, a README and a NEXT.md describing
+how to operate a system that no longer exists. No credentials remain in it, so
+it is clutter, not exposure.
+
+*Original entry:*
+
+### (fixed) `.env` from the retired local runner sits in Google Drive
 
 **Shows up as:** a 64-byte `.env` in the Drive copy of the retired
 `project-ed-local-caller` tree, alongside `config/`, `actions/`, `logs/` and
@@ -128,9 +183,61 @@ A 934 KB archive dated June 2026 that matched a Drive full-text search for a
 decommissioned project name. Never opened. Low priority; recorded so the next
 sweep does not rediscover it as if it were new.
 
+## OPEN — the Listener agent's spec describes a different job than the one wanted
+
+**Shows up as:** it does not yet. The board-side lamp is wired and correct; the
+agent behind it is specified to do something Ernie has since replaced.
+
+**Where:** `claude/the-listener.md`, a Claude Project doc — not in this repo.
+
+The spec says: read the Notes doc at midnight, carve exactly one triage task,
+go silent. What was asked for on 2026-08-23: read the **Journal** doc, parse it,
+and **go over the items with her**, on a 12-hour cadence plus an on-demand
+trigger. Different cadence, different output, different interaction model.
+
+Also still unverified whether the agent runs at all. Until something writes a
+night's record the lamp sits dark, and a dark lamp cannot distinguish "nothing
+to triage" from "nothing is running."
+
+The spec also contains a line Ernie does not remember writing and does not agree
+with — that the Listener should fall silent once Ed exists. Ed exists and she
+wants the Listener louder, not quieter. **Rewrite before building the button or
+the schedule off it.**
+
+Opened 2026-08-23.
+
+## OPEN — a changed CSS default is invisible to anyone who dragged the grip
+
+**Shows up as:** the rail default was widened 272 → 340px, and anyone with a
+saved grip position sees no change at all.
+
+**Where:** `docs/interface/quest-board-v1.html`, `RAIL_KEY = 'questboard.rail'`.
+
+A saved `localStorage` width is applied over the CSS default on load, by design
+— the grip is meant to win. The consequence is that **shipping a new default is
+a no-op for the only person who uses the board** until she double-clicks the
+grip to clear it. Not a defect; a communication trap. Recorded so the next
+person changing a default remembers to say so.
+
+Opened 2026-08-23.
+
 ---
 
 ## RESOLVED
+
+### 2026-08-23 — new note type rendered an unreadable status badge
+
+`.note.life` was added without being added to the badge selector, so it fell
+through to the base `.note .status` rule — which is built for the dark
+`daily`/`rep` notes that no longer exist. On cream parchment that renders as a
+grey box with effectively invisible text. **It rendered; it just could not be
+read**, which is why a structural audit passed it and only a rendered screenshot
+caught it.
+
+Fixed by adding `life` to the parchment badge selector and deleting the dead
+`major`/`daily`/`rep` badge rules. Measured identical to `main` and `side`
+afterwards. A comment now warns that a new type must be added there or it
+inherits dark-note styling.
 
 ### 2026-08-23 — placeholder named a decommissioned project in a public repo
 
