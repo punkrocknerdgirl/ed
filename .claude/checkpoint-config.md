@@ -31,6 +31,14 @@ stale — do not restore it.
   verify from origin afterwards.
 - **The quest board is practice-internal and must never be deployed.** It
   carries client names. See Part 1 of how-we-build-things.
+- **A build log about client-adjacent work is itself client-adjacent.** Learned
+  the hard way 2026-08-23: the checkpoint log written to record a *cleanup* named
+  seven clients — once in prose, and once inside a quoted grep pattern used to
+  prove the repo was clean. The proof of cleanliness was the contamination. It
+  was pushed to this public repo and had to be removed by squashing two commits
+  and force-pushing. **Sweep the log you just wrote, not only the tree it
+  describes**, and never paste a client-name search pattern into a tracked file.
+  Refer to clients as "one client" or by short code in anything committed here.
 - `docs/interface/board-data.js`, `clickup_dump.json`, and
   `quest-board-live.html` are generated and gitignored. Never commit them.
 - Any HTML handed to Ernie must be the **baked** standalone that `fill_board.py`
