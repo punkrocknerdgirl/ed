@@ -133,7 +133,70 @@ from its last-known `origin/main`, and it has not fetched since 2026-07-06.
 - Local checkout is the working copy, GitHub is the record. Build logs are
   written locally first, then pushed, never edited directly on GitHub.
 
+## Incident: client names committed to this public repo, then removed
+
+**This was Claude's error, introduced by the first draft of this very file.**
+
+The draft recorded the cleanup sweep by quoting the grep pattern used to run it
+— a pipe-delimited list of seven client names — and separately named one client
+in the housekeeping section. Both were pushed to `ed`, which is public
+(confirmed: an anonymous clone succeeds from a container the git proxy refuses
+to issue credentials for). Ernie was told to push it.
+
+Caught on the verification pass after `1b412f4`, by the same sweep run against
+the fresh clone.
+
+- **Severity:** client *names* only. No financial figures, quotes, or
+  diagnostics. Materially smaller than the 2026-08-22 exposure, but it broke the
+  one property that made this repo useful — the Map's entry for `ed` read
+  "**None** — verified."
+- **Fix:** the two offending commits (`83c9b98`, `1b412f4`) were the tip and
+  nothing depended on them, so they were squashed back to the last verified
+  clean commit `e9934d8` and replaced via
+  `git reset --soft` + `git push --force-with-lease`. Verified from a fresh
+  clone: both SHAs are unreachable, and a full sweep across all 27 commits in
+  history is clean apart from one pre-existing item below.
+- **Residue, pre-existing and accepted:** one partner name appears in a list of
+  feeder channels in `docs/ed_build-log.md`, in commits from June. That file is
+  deleted at the tip. Not financial detail, not from this session; filed
+  alongside the `prngclients` / `prngbooks` history items as a someday.
+- **Guardrail added** to `.claude/checkpoint-config.md`: a build log about
+  client-adjacent work is itself client-adjacent. Sweep the log you just wrote,
+  not only the tree it describes, and never paste a client-name search pattern
+  into a tracked file.
+
+The general shape is worth keeping: **the artifact that proves cleanliness can
+be the thing that breaks it.** Rule 5 says verify from outside — this is the
+case where the verification output itself needed verifying.
+
+## Terminal reference written
+
+Ernie asked what commands keep the local folder and GitHub mirrored, and whether
+`git status` confirms a push. It does not: it compares the branch to a *cached*
+copy of origin, so a rejected push can still read as "up to date." That is the
+2026-08-22 failure shape exactly — a local cache being mistaken for the remote.
+
+- `diane/docs/build-logs/terminal-and-git-glossary.md` gained a workflow section
+  at the end, plus a missing `git rm <file>` entry inserted in alphabetical
+  order per that file's stated convention. **Note the conflict that was
+  resolved rather than papered over:** the glossary's `git add <file>` entry
+  explicitly warns against `git add -A` because the Diane checkout carries stray
+  files. The new section keeps explicit naming as the default and scopes
+  `git add -A` to checkouts where `git status` has just been read and is clean.
+  A section arguing with its own file 300 lines up is the failure this session
+  spent its morning removing.
+- `ed/docs/build-logs/README.md` — what the folder is, the naming convention,
+  the push loop, the `git status` caveat, and a pointer to the glossary as the
+  full reference. Deliberately a pointer and not a copy.
+
 ## Next step
 
-Commit and push `.claude/checkpoint-config.md` and this build log. After that,
-wire aging on the quest board — it is the difference between a list and a board.
+Wire aging on the quest board. Every `sat` is 0, so no note shows wear, which
+means the board cannot show drift — and catching drift is most of why it exists.
+`date_updated` drives it; the ClickUp MCP's task filter omits that field but a
+per-task fetch returns it. An MCP gap, not a design gap.
+
+Also still open, both flagged this session and deliberately untouched:
+`quest-board.md` at the repo root is the v1 brief only and contradicts V3 on
+dailies; `antihub` is the one repo whose local `main` differs from its
+last-known `origin/main`, unfetched since 2026-07-06.
