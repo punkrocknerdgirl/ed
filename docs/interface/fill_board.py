@@ -23,6 +23,21 @@ WHAT EACH COLUMN ANSWERS (decided with Ernie, 2026-08-23)
 
 WHAT EARNS A SPOT: only live work. `pending` is backlog, `parked` is shelved;
 both stay in ClickUp. The statuses already carry this, so nothing new to keep up.
+
+WHAT THE DUMP MUST CARRY (changed 2026-08-23, when aging was wired)
+
+  Every task needs `date_updated` -- ClickUp's epoch-millisecond last-touched
+  stamp. It is what aging runs on, and WITHOUT IT EVERY NOTE RENDERS BRAND NEW,
+  which is exactly the state this board sat in until now.
+
+  It cannot come from the same call as the rest. `clickup_filter_tasks` does not
+  return the field at all -- verified 2026-08-23, not assumed -- while
+  `clickup_get_task` on the very same task returns it. So building the dump costs
+  one extra per-task fetch for anything that will render. An MCP gap, not a
+  design gap; if the filter ever starts returning it, the extra pass just stops
+  being needed and nothing here changes.
+
+  A task with no `date_updated` ages to nothing rather than guessing.
 """
 import json, html, sys, os, base64, re, datetime
 from collections import Counter
@@ -45,6 +60,44 @@ MULTISTEP = 2
 STATUS_RANK = {"in progress": 0, "next": 1, "recurring": 2, "waiting": 3,
                "pending": 4, "parked": 5}
 
+# ── Aging ── the only signal this board may give that time has passed ────────
+# Rule 5 forbids overdue, red, and counting; the brief allows exactly one thing:
+# "an old quest just looks old." It renders as wear -- yellowing and a lifting
+# corner -- and is never printed, never counted, never turned back into a date.
+#
+# The clock runs PER COLUMN, decided with Ernie 2026-08-23. A single flat rate
+# does not work here: a daily untouched four days is drift, while the same four
+# days on a months-long build is a Tuesday. One rate would render every daily
+# fully aged and every major quest line permanently crisp -- which inverts the
+# signal instead of carrying it.
+#
+# Days untouched at which a note reaches wear level 1 / 2 / 3.
+AGE_STEPS = {
+    "main":  (2, 5, 10),     # the thing that pays. Sitting is the worst kind.
+    "major": (14, 30, 60),   # builds move in weeks; two months is abandoned.
+    "side":  (7, 14, 30),
+    "daily": (1, 2, 4),
+    "rep":   (3, 7, 14),     # a weekly thing at 7 days is due, at 14 it slipped.
+}
+
+def sat(kind, updated_ms):
+    """Wear as a CONTINUOUS number 0-3, not three steps. Piecewise-linear
+    through the column's own thresholds, so they still mean exactly what they
+    meant -- the value hits 1.0, 2.0 and 3.0 on the nose at a, b and c -- while
+    a note at nine days no longer renders identical to one at fourteen.
+
+    Unknown or missing stamp ages to 0: a note never invents age it cannot show
+    its work for."""
+    if not updated_ms:
+        return 0
+    days = (TODAY - datetime.date.fromtimestamp(int(updated_ms) / 1000)).days
+    a, b, c = AGE_STEPS[kind]
+    if days <= 0:  return 0
+    if days < a:   return round(days / a, 2)
+    if days < b:   return round(1 + (days - a) / (b - a), 2)
+    if days < c:   return round(2 + (days - b) / (c - b), 2)
+    return 3
+
 esc = lambda s: html.escape(s, quote=False)
 nice = lambda s: " ".join(w.capitalize() for w in s.split())
 
@@ -62,15 +115,26 @@ feeds_main = [t for t in d["clients"] if t["status"] in LIVE] + \
 feeds_main.sort(key=lambda t: (due_key(t), PRIO[t.get("priority")]))
 step = feeds_main[0] if feeds_main else None
 main_q = ([{"type": "main", "text": esc(step["name"]),
-            "status": nice(step["status"]), "sat": 0}] if step else [])
+            "status": nice(step["status"]),
+            "sat": sat("main", step.get("date_updated"))}] if step else [])
 
 # ── Major quest lines ── next available quest per project, plus a tally ──────
+# A major quest note is a STATUS STRIP for a whole project, so it ages off when
+# the PROJECT last moved -- the newest stamp anywhere in the folder -- not off
+# its lead task. Otherwise a folder whose front task happens to get retitled
+# reads as alive while the build behind it has not moved in a month, and a
+# folder with nothing queued could never age at all. The stalled build is the
+# exact drift this column exists to catch.
 tally = Counter()
 total = Counter()
+touched = {}
 for t in d["creative_all"]:
     total[t["folder"]] += 1
     if t["status"] in DONE:
         tally[t["folder"]] += 1
+    u = t.get("date_updated")
+    if u and int(u) > int(touched.get(t["folder"]) or 0):
+        touched[t["folder"]] = u
 
 open_by_folder = {}
 for t in d["creative"]:
@@ -89,7 +153,7 @@ for folder in total:
         "text": esc(lead["name"]) if lead else "Nothing queued.",
         "status": nice(lead["status"]) if lead else "Clear",
         "tally": "%d of %d" % (tally[folder], total[folder]),
-        "sat": 0,
+        "sat": sat("major", touched.get(folder)),
         "_rank": STATUS_RANK.get(lead["status"], 9) if lead else 99,
     })
 # lines that are actually moving come first; finished ones fall to the ledger
@@ -108,13 +172,14 @@ for t in d["admin"]:
     if step and t["id"] == step["id"]:
         continue                      # already standing as the main quest step
     tags = [x.lower() for x in t.get("tags", [])]
-    note = {"text": esc(t["name"]), "status": nice(t["status"]), "sat": 0}
+    note = {"text": esc(t["name"]), "status": nice(t["status"])}
+    u = t.get("date_updated")
     if "daily" in tags:
-        daily_q.append({"type": "daily", **note})
+        daily_q.append({"type": "daily", "sat": sat("daily", u), **note})
     elif "repeat" in tags or t["status"] == "recurring":
-        rep_q.append({"type": "rep", **note})
+        rep_q.append({"type": "rep", "sat": sat("rep", u), **note})
     else:
-        side_q.append({"type": "side", **note})
+        side_q.append({"type": "side", "sat": sat("side", u), **note})
 
 if not daily_q:
     daily_q = [{"type": "daily", "text": esc(t), "sat": 0} for t in STARTER_DAILIES]
@@ -140,7 +205,6 @@ def ed_line(step, days_left):
 BOARD = {
     "mainQuest": {"title": "Reports Out by the 15th", "daysRemaining": days_left},
     "ed": ed_line(step, days_left),
-    "shield": {"active": False, "daysLeft": 0},
     "listener": {"waiting": False, "line": "Nothing waiting to be triaged."},
     "quests": main_q + major_q + side_q + daily_q + rep_q,
 }

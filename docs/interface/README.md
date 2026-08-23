@@ -30,8 +30,12 @@ else on the page changes when they do.
 | `listener` | `waiting` + `line`. Lit means a record is waiting. |
 | `quests[]` | `type` (main / major / side / daily / rep), `text`, optional `status`, optional `thread` (major only), and `sat`. |
 
-`sat` is how long a quest has sat there. It drives wear only — **never printed,
-never counted, never turned into a date.**
+`sat` is a wear level, **0–3** — not a day count. `fill_board.py` turns days
+untouched (ClickUp's `date_updated`) into a level, on a clock that differs per
+column: a daily untouched four days is drift, the same four days on a
+months-long build is a Tuesday. Wear is the only signal this board gives that
+time has passed, and it drives appearance only — **never printed, never counted,
+never turned back into a date.**
 
 `MAJOR_SHOWN` caps how many projects show. The overflow link carries no number,
 deliberately.
