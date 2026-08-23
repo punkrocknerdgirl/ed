@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Quest Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --stone-0:#0e0a07; --wood-0:#2b1d13; --wood-1:#3d2a1a;
+  --parch:#f0e4c6; --parch-2:#e0cfa8;
+  --gold:#eec269; --gold-deep:#b8862c; --gold-dim:#9c7630;
+  --violet:#b79ef0; --violet-deep:#6b4cba;
+  --iron:#cbbda4; --iron-edge:#6d5a3e;
+  --ink:#2a1d10; --ink-2:#54402a;
+}
+*{box-sizing:border-box}
+html{font-size:18px}
+@media (max-width:900px){ html{font-size:17px} }
+body{
+  margin:0; min-height:100vh; color:var(--parch);
+  font-family:'EB Garamond',Georgia,'Times New Roman',serif;
+  background:
+    radial-gradient(130% 85% at 50% -12%, #432d1a 0%, transparent 62%),
+    radial-gradient(55% 45% at 6% 34%, rgba(255,150,60,.16) 0%, transparent 70%),
+    radial-gradient(48% 40% at 94% 52%, rgba(150,115,240,.14) 0%, transparent 70%),
+    linear-gradient(180deg,#1f150e 0%, var(--stone-0) 100%);
+  background-color:var(--stone-0);
+}
+.room{max-width:1720px;margin:0 auto;padding:38px 30px 76px}
+
+/* ══ PANEL — the character-sheet idea: every region is its own framed box.
+      Separation comes from structure, never from dimming something out. ══ */
+.panel{
+  border:2px solid var(--gold-deep); border-radius:5px;
+  background:linear-gradient(180deg, rgba(38,26,16,.94), rgba(20,13,8,.96));
+  box-shadow:0 10px 26px rgba(0,0,0,.62), inset 0 0 0 1px rgba(255,225,170,.07);
+}
+.panel > .cap{
+  display:block; padding:9px 14px; text-align:center;
+  background:linear-gradient(180deg,#4a3468,#2c1f42);
+  border-bottom:2px solid var(--gold-deep);
+  font-family:'Cinzel',Georgia,serif; font-size:.86rem; font-weight:600;
+  letter-spacing:.17em; text-transform:uppercase; color:var(--gold);
+}
+.panel > .body{padding:18px}
+.panel.violet{border-color:var(--violet-deep)}
+.panel.violet > .cap{background:linear-gradient(180deg,#3d2d63,#241a3d);
+  border-bottom-color:var(--violet-deep);color:var(--violet)}
+.panel.iron{border-color:var(--iron-edge)}
+.panel.iron > .cap{background:linear-gradient(180deg,#3a2f22,#221a11);
+  border-bottom-color:var(--iron-edge);color:#d9c8a4}
+
+.board{display:grid; gap:28px; grid-template-columns:340px minmax(0,1fr) 250px; align-items:start}
+@media (max-width:1240px){ .board{grid-template-columns:1fr} }
+
+/* ══ ED ══ */
+.frame{
+  border:8px solid transparent; border-radius:4px;
+  background:linear-gradient(#000,#000) padding-box,
+    linear-gradient(150deg,var(--gold),#6d4d19 42%,var(--gold) 72%,#4a340f) border-box;
+  box-shadow:0 12px 32px rgba(0,0,0,.78); line-height:0;
+}
+.frame img{width:100%;height:auto}
+.scroll{
+  position:relative; margin-top:26px; padding:26px 26px;
+  background:linear-gradient(170deg,#f4e9cd,#e2d2ac); color:var(--ink);
+  border-radius:4px; border:1px solid #9a7c45;
+  box-shadow:0 10px 26px rgba(0,0,0,.6), inset 0 0 46px rgba(150,110,50,.16);
+  font-size:1.14rem; line-height:1.5;
+}
+.scroll:after{content:"";position:absolute;left:40px;top:-13px;
+  border:13px solid transparent;border-bottom-color:#f4e9cd;border-top:0}
+
+.bell{display:flex;flex-direction:column;align-items:center;gap:12px;
+  margin-top:30px;text-decoration:none}
+.bell .lip{
+  padding:7px 20px;border-radius:3px;
+  background:linear-gradient(180deg,#2c2015,#150e08);border:1px solid #6a5231;
+  color:var(--gold-dim);font-family:'Cinzel',Georgia,serif;
+  font-size:.78rem;letter-spacing:.2em;transition:color .25s,border-color .25s}
+.bell:hover .lip{color:var(--gold);border-color:var(--gold-deep)}
+.bell svg{filter:drop-shadow(0 6px 11px rgba(0,0,0,.72))}
+.bell:hover svg{filter:drop-shadow(0 6px 16px rgba(255,180,90,.4))}
+.handoff{
+  display:block;width:100%;margin-top:18px;padding:0;background:none;border:0;
+  cursor:pointer;color:#9b8666;font-family:'EB Garamond',Georgia,serif;
+  font-size:1.02rem;font-style:italic;text-decoration:underline;
+  text-underline-offset:4px;text-align:center;transition:color .2s}
+.handoff:hover{color:#c9b28b}
+
+/* ══ MAIN QUEST ══ */
+.mainquest{
+  position:relative;display:flex;align-items:center;gap:28px;padding:20px 28px;
+  background:linear-gradient(165deg,#f4eacb 0%,#e3d2a9 55%,#d1bc8c 100%);
+  color:var(--ink);border-radius:4px;
+  box-shadow:0 16px 38px rgba(0,0,0,.72), inset 0 0 66px rgba(150,110,50,.18);
+}
+.mainquest h1{margin:0;font-family:'Cinzel',Georgia,serif;font-weight:700;
+  font-size:1.8rem;line-height:1.14;color:#3a2a5c;flex:1}
+/* label-above-value, straight off the character sheet */
+.stat{flex:0 0 auto;text-align:center;padding:0 20px;
+  border-left:1px solid rgba(90,65,25,.32);border-right:1px solid rgba(90,65,25,.32)}
+.stat .lab{display:block;font-family:'Cinzel',Georgia,serif;font-size:.76rem;
+  letter-spacing:.19em;text-transform:uppercase;color:var(--ink-2)}
+.stat .val{display:block;margin-top:2px;font-family:'Cinzel',Georgia,serif;
+  font-size:2.2rem;line-height:1;color:var(--ink);font-weight:600}
+.coin{flex:0 0 auto;width:86px;height:86px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#f8dd93,#daa740 45%,#8f6a1c 100%);
+  box-shadow:0 7px 18px rgba(0,0,0,.5),inset 0 -5px 14px rgba(90,60,10,.6),
+    inset 0 3px 9px rgba(255,240,190,.55);
+  display:grid;place-items:center;color:#7a5715;font-size:2rem}
+.nail{position:absolute;width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#e6c073,#6d4d16);
+  box-shadow:0 1px 4px rgba(0,0,0,.7)}
+.nail.tl{left:16px;top:16px}.nail.tr{right:16px;top:16px}
+.nail.bl{left:16px;bottom:16px}.nail.br{right:16px;bottom:16px}
+
+/* ══ QUEST LOG ══ */
+.log{margin-top:24px;display:grid;gap:22px;grid-template-columns:repeat(6,minmax(0,1fr))}
+.log > .panel{grid-column:span 3}
+.log > .panel.wide{grid-column:span 6}
+@media (max-width:1240px){
+  .log{grid-template-columns:1fr}
+  .log > .panel, .log > .panel.wide{grid-column:span 1}
+}
+.panel .body.stack{display:flex;flex-direction:column;gap:12px}
+
+.note{position:relative;display:flex;align-items:center;gap:14px;
+  padding:11px 16px 11px 32px;text-align:left;border-radius:3px;
+  font-size:1.02rem;line-height:1.35;box-shadow:0 6px 13px rgba(0,0,0,.48)}
+.note .txt{flex:1;min-width:0}
+.note .pin{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#cdb8f5,#4a3480);
+  box-shadow:0 2px 5px rgba(0,0,0,.7)}
+
+.note.main{background:linear-gradient(165deg,#f4ead0,#e2d2ac);color:var(--ink);
+  padding-left:48px;font-size:1.08rem;border:1px solid #a5854b}
+.note.main .seal{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#f6da8c,#c08f2c 55%,#7d5a13);
+  box-shadow:0 4px 10px rgba(0,0,0,.65),inset 0 -2px 7px rgba(80,55,10,.7);
+  display:grid;place-items:center;color:#6d4d12;font-size:.85rem}
+
+.note.side{background:linear-gradient(160deg,#ece0bd,#d8c59c);color:var(--ink);
+  border:1px solid #9c7f4a}
+
+/* Dailies and repeatables are NOT dimmed. Different material, same legibility —
+   if she can't see it, it won't get done. */
+.note.daily{background:linear-gradient(165deg,#4a3d2c,#372c1f);color:var(--iron);
+  border:1px solid var(--iron-edge)}
+.note.rep{background:linear-gradient(165deg,#4a3d2c,#372c1f);color:var(--iron);
+  border:1px solid var(--iron-edge)}
+.note.daily .pin,.note.rep .pin{
+  background:radial-gradient(circle at 34% 30%,#c3b092,#4b3d28)}
+.note.rep{padding-left:38px}
+.note.rep .cycle{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  color:var(--gold-dim);font-size:1.02rem}
+.note.rep .pin{display:none}
+
+.note.major{background:linear-gradient(165deg,#443661,#2f2547);color:#ded2f5;
+  border:1px solid var(--violet-deep);padding-left:18px}
+.note.major .thread{font-family:'Cinzel',Georgia,serif;
+  font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--violet);margin-right:10px}
+.note.major .thread:after{content:"\00b7";margin-left:10px;color:#6b5a95}
+.note.major .pin{display:none}
+
+.note .status{flex:0 0 auto;margin-top:0;padding:3px 9px;border-radius:2px;white-space:nowrap;
+  font-family:'Cinzel',Georgia,serif;font-size:.64rem;letter-spacing:.13em;
+  text-transform:uppercase;line-height:1.6;
+  background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.14);color:#a89b82}
+.note.main .status,.note.side .status{
+  background:rgba(90,65,25,.13);border-color:rgba(120,90,40,.4);color:#75592c}
+.note.major .status{background:rgba(120,95,200,.2);
+  border-color:rgba(160,130,240,.4);color:#c4b1f2}
+.note.daily .status,.note.rep .status{color:#c4b391;border-color:rgba(200,180,140,.24)}
+
+/* aging — the only signal that something has sat */
+/* Aging, without rotation. A tilted flex row clips its status chip and reads as
+   broken rather than old. Wear is carried by tone and a lifting corner instead. */
+.note{overflow:hidden}
+.note.age1{filter:sepia(.10) brightness(.985)}
+.note.age2{filter:sepia(.22) brightness(.96)}
+.note.age3{filter:sepia(.38) brightness(.92) saturate(.9)}
+.note.age1:after,.note.age2:after,.note.age3:after{
+  content:"";position:absolute;right:0;bottom:0;pointer-events:none;
+  background:linear-gradient(135deg,transparent 50%,rgba(125,95,50,.42) 50%,rgba(55,38,16,.72) 100%)}
+.note.age1:after{width:14px;height:14px}
+.note.age2:after{width:24px;height:24px}
+.note.age3:after{width:36px;height:36px}
+
+.more{display:block;text-align:center;font-size:1rem;font-style:italic;
+  color:#9b8666;text-decoration:underline;text-underline-offset:4px}
+
+/* ══ SHIELD & LISTENER ══ */
+.crest{text-align:center;font-size:3.6rem;color:var(--gold);
+  text-shadow:0 0 24px rgba(183,158,240,.9),0 0 50px rgba(183,158,240,.45)}
+.quiet{display:block;margin-top:18px;text-align:center;padding:7px 10px;border-radius:2px;
+  background:linear-gradient(180deg,#2a1e14,#160e08);border:1px solid #6a5231;
+  font-family:'Cinzel',Georgia,serif;font-size:.74rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--gold)}
+.dormant .crest{color:#7b6f80;text-shadow:none}
+.dormant .quiet{color:#8d8291}
+.lswrap{text-align:center}
+.lswrap img{width:100%;max-width:190px;height:auto}
+.dark img{filter:grayscale(.9) brightness(.34)}
+.lssay{margin-top:14px;font-size:.98rem;font-style:italic;color:#cbb894;line-height:1.4}
+.foot{margin-top:52px;text-align:center;color:#7d6950;font-size:.98rem;letter-spacing:.06em}
+.rail > * + *{margin-top:28px}
+</style>
+</head>
+<body>
+<div class="room">
+<div class="board">
+
+  <!-- ═══ ED ═══ -->
+  <div class="rail">
+    <div class="frame"><img id="edimg" src="assets/ed.png" alt="Ed, the innkeeper, behind his bar"></div>
+    <div class="scroll" id="edline"></div>
+    <div>
+      <a class="bell" id="bell" href="claude://" title="Bring Claude forward">
+        <svg width="86" height="98" viewBox="0 0 74 86" aria-hidden="true">
+          <path d="M12 24 H62" stroke="#5a4830" stroke-width="4" stroke-linecap="round"/>
+          <path d="M37 24 v6" stroke="#4a3a24" stroke-width="3"/>
+          <path d="M37 30 c-14 0 -22 12 -22 26 v8 h44 v-8 c0 -14 -8 -26 -22 -26 z"
+                fill="url(#ir)" stroke="#241a10" stroke-width="1.5"/>
+          <rect x="11" y="63" width="52" height="6" rx="3" fill="#4a3a22" stroke="#241a10"/>
+          <circle cx="37" cy="74" r="5" fill="#5a4830" stroke="#241a10"/>
+          <defs><linearGradient id="ir" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#8d7350"/><stop offset=".45" stop-color="#57432a"/>
+            <stop offset="1" stop-color="#33271a"/></linearGradient></defs>
+        </svg>
+        <span class="lip">Ring for Ed</span>
+      </a>
+      <button class="handoff" id="handoff" type="button">copy Ed's opening line</button>
+    </div>
+  </div>
+
+  <!-- ═══ CENTRE ═══ -->
+  <div>
+    <div class="panel">
+      <span class="cap">The Main Quest</span>
+      <div class="body" style="padding:0">
+        <div class="mainquest">
+          <span class="nail tl"></span><span class="nail tr"></span>
+          <span class="nail bl"></span><span class="nail br"></span>
+          <h1 id="mqTitle"></h1>
+          <div class="stat">
+            <span class="lab">Days Remaining</span>
+            <span class="val" id="mqDays"></span>
+          </div>
+          <div class="coin">♔</div>
+        </div>
+      </div>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <!-- ═══ RIGHT RAIL ═══ -->
+  <div class="rail">
+    <div class="panel" id="shield">
+      <span class="cap">The Shield</span>
+      <div class="body">
+        <div class="crest">♔</div>
+        <span class="quiet" id="quiet"></span>
+      </div>
+    </div>
+    <div class="panel violet" id="listener">
+      <span class="cap">The Listener</span>
+      <div class="body lswrap">
+        <img id="lsimg" src="assets/listener.png" alt="The Listener, a faceted crystal on silver chains">
+        <div class="lssay" id="lssay"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="foot">Good ale. Warm beds. Bad excuses.</div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   THE SEAM. Everything below is placeholder. When the board goes
+   live this object is what ClickUp and Airtable fill in — nothing
+   else in the page needs to change.
+   ══════════════════════════════════════════════════════════════ */
+const BOARD = {
+  mainQuest: { title: "Close the Books by the 15th", daysRemaining: 10 },
+  ed: "Bank feeds, then. Pull the latest transactions and I'll leave you alone.",
+  shield: { active: true, daysLeft: 2 },
+  listener: { waiting: true, line: "A record is waiting to be triaged." },
+
+  quests: [
+    // sat = how long it has been on the board. Rendered as wear ONLY —
+    // never printed, never counted, never turned into a date.
+    { type:"main",  text:"Close the month — July 2026",           status:"In Progress", sat:0 },
+    { type:"main",  text:"Review &amp; reconcile all accounts", status:"Open",        sat:0 },
+    { type:"main",  text:"Finalize &amp; archive July 2026",                          sat:0 },
+
+    // Major: ONE note per project — its latest open task. Where every build
+    // currently stands, at a glance. Not a task list.
+    { type:"major", thread:"Diane",   text:"Ticket OCR validation pass", status:"In Progress", sat:2 },
+    { type:"major", thread:"Ed",      text:"Wire the board to ClickUp",  status:"In Progress", sat:0 },
+    { type:"major", thread:"Portal",  text:"Client hubs, phase 2",       status:"Blocked",     sat:4 },
+    { type:"major", thread:"Kwisatz", text:"Rebuild app.py",             status:"Parked",      sat:9 },
+
+    { type:"side",  text:"Clean up old categories",  status:"Open",        sat:3 },
+    { type:"side",  text:"Update vendor records",    status:"In Progress", sat:1 },
+    { type:"side",  text:"Refine reports packages",                        sat:2 },
+
+    { type:"daily", text:"Check for new transactions", sat:0 },
+    { type:"daily", text:"Triage the night\u2019s record",         sat:0 },
+    { type:"daily", text:"Client follow-up sweep",     sat:0 },
+
+    { type:"rep",   text:"Weekly invoice run",  sat:0 },
+    { type:"rep",   text:"Payroll check-in",    sat:0 },
+    { type:"rep",   text:"Vendor maintenance",  sat:1 }
+  ]
+};
+
+const BELL_PROMPT =
+  "You're Ed. Read the latest checkpoint in the project and " +
+  "how-we-build-things.md — rule 10 first — then tell me step one.";
+
+/* How many projects show. The rest live in the ledger — a detail page, later.
+   Three is the cap because the column is a glance, not an index. */
+const MAJOR_SHOWN = 3;
+
+/* Two rows of wide panels rather than five narrow ones — a note needs room to
+   be a sentence, not a stack of two words. 6-col grid: 2+2+2 then 3+3. */
+const COLS = [
+  ["main",  "Main Quest Line",   ""],
+  ["major", "Major Quest Lines", "violet"],
+  ["side",  "Side Quests",       ""],
+  ["daily", "Dailies",           "iron"],
+  ["rep",   "Repeatables",       "iron wide"]
+];
+
+document.getElementById('mqTitle').innerHTML = BOARD.mainQuest.title.replace(/\n/g,'<br>');
+document.getElementById('mqDays').textContent = BOARD.mainQuest.daysRemaining;
+document.getElementById('edline').innerHTML = BOARD.ed.replace(/\n/g,'<br>');
+
+const sh = document.getElementById('shield');
+if (BOARD.shield.active) {
+  document.getElementById('quiet').textContent =
+    "Quiet earned — " + BOARD.shield.daysLeft + (BOARD.shield.daysLeft === 1 ? " day" : " days");
+} else {
+  sh.classList.add('dormant');
+  document.getElementById('quiet').textContent = "Unearned";
+}
+document.getElementById('lssay').textContent = BOARD.listener.line;
+if (!BOARD.listener.waiting) document.getElementById('listener').classList.add('dark');
+
+const log = document.getElementById('log');
+for (const [type, head, tone] of COLS) {
+  let items = BOARD.quests.filter(q => q.type === type);
+  let overflow = false;
+  if (type === 'major' && items.length > MAJOR_SHOWN) {
+    items = items.slice(0, MAJOR_SHOWN); overflow = true;
+  }
+  const panel = document.createElement('div');
+  panel.className = 'panel' + (tone ? ' ' + tone : '');
+  const body = document.createElement('div');
+  body.className = 'body stack';
+  for (const q of items) {
+    const age = q.sat >= 3 ? 3 : q.sat >= 2 ? 2 : q.sat >= 1 ? 1 : 0;
+    const n = document.createElement('div');
+    n.className = 'note ' + type + (age ? ' age' + age : '');
+    n.innerHTML =
+      (type === 'main' ? '<span class="seal">♚</span>' :
+       type === 'major' ? '' : '<span class="pin"></span>') +
+      (type === 'rep' ? '<span class="cycle">↻</span>' : '') +
+      '<span class="txt">' +
+        (q.thread ? '<span class="thread">' + q.thread + '</span>' : '') +
+        q.text +
+      '</span>' +
+      (q.status ? '<span class="status">' + q.status + '</span>' : '');
+    body.appendChild(n);
+  }
+  if (overflow) {
+    const m = document.createElement('a');
+    m.className = 'more'; m.href = '#';
+    m.textContent = 'the rest are in the ledger';
+    body.appendChild(m);
+  }
+  panel.innerHTML = '<span class="cap">' + head + '</span>';
+  panel.appendChild(body);
+  log.appendChild(panel);
+}
+
+/* The bell is a plain link to a bare claude:// — verified to bring the app
+   forward WITHOUT touching the open conversation. Nothing on this board starts
+   a new conversation; the handoff below only touches the clipboard. */
+const handoff = document.getElementById('handoff');
+handoff.addEventListener('click', async () => {
+  let ok = false;
+  try { await navigator.clipboard.writeText(BELL_PROMPT); ok = true; }
+  catch (e) {
+    try {
+      const t = document.createElement('textarea');
+      t.value = BELL_PROMPT; t.style.position='fixed'; t.style.opacity='0';
+      document.body.appendChild(t); t.select();
+      ok = document.execCommand('copy'); document.body.removeChild(t);
+    } catch (e2) { ok = false; }
+  }
+  handoff.textContent = ok ? "copied — paste it wherever you are"
+                           : "copy failed — grab it from the source";
+  setTimeout(() => { handoff.textContent = "copy Ed's opening line"; }, 2600);
+});
+</script>
+</body>
+</html>
