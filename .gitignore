@@ -15,3 +15,8 @@ __pycache__/
 
 # Local/editor junk
 .vscode/
+
+# Quest board — generated, and it carries client names (Part 1: practice-internal)
+docs/interface/board-data.js
+docs/interface/clickup_dump.json
+docs/interface/quest-board-live.html

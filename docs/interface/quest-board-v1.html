@@ -58,12 +58,16 @@ body{
 
 /* ══ ED ══ */
 .frame{
+  position:relative;
   border:8px solid transparent; border-radius:4px;
   background:linear-gradient(#000,#000) padding-box,
     linear-gradient(150deg,var(--gold),#6d4d19 42%,var(--gold) 72%,#4a340f) border-box;
   box-shadow:0 12px 32px rgba(0,0,0,.78); line-height:0;
 }
-.frame img{width:100%;height:auto}
+/* ed-square.png is cropped from INSIDE ed.png's own painted gold border --
+   squaring the original in CSS cut that border in half and read as damage.
+   The frame around him is .frame's, and it closes properly. */
+.frame img{width:100%;height:auto;display:block}
 .scroll{
   position:relative; margin-top:26px; padding:26px 26px;
   background:linear-gradient(170deg,#f4e9cd,#e2d2ac); color:var(--ink);
@@ -74,22 +78,52 @@ body{
 .scroll:after{content:"";position:absolute;left:40px;top:-13px;
   border:13px solid transparent;border-bottom-color:#f4e9cd;border-top:0}
 
-.bell{display:flex;flex-direction:column;align-items:center;gap:12px;
-  margin-top:30px;text-decoration:none}
-.bell .lip{
-  padding:7px 20px;border-radius:3px;
-  background:linear-gradient(180deg,#2c2015,#150e08);border:1px solid #6a5231;
-  color:var(--gold-dim);font-family:'Cinzel',Georgia,serif;
-  font-size:.78rem;letter-spacing:.2em;transition:color .25s,border-color .25s}
-.bell:hover .lip{color:var(--gold);border-color:var(--gold-deep)}
-.bell svg{filter:drop-shadow(0 6px 11px rgba(0,0,0,.72))}
-.bell:hover svg{filter:drop-shadow(0 6px 16px rgba(255,180,90,.4))}
+/* The bell hangs on Ed's own frame, bottom right. No label -- the bell is the
+   label. It sits on a dark plaque with a gold rim so it reads against whatever
+   part of the tavern is behind it (rule 5a: if she can't see it, it won't get
+   used), and the bell itself is gold rather than the wall's brown. */
+.bell{position:absolute;right:15px;bottom:15px;z-index:2;
+  display:grid;place-items:center;width:66px;height:66px;border-radius:50%;
+  background:radial-gradient(circle at 38% 28%,rgba(34,24,14,.93),rgba(9,6,3,.97));
+  border:1px solid var(--gold-deep);text-decoration:none;
+  box-shadow:0 6px 18px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,220,160,.2);
+  transition:border-color .25s,box-shadow .25s,transform .15s}
+.bell:hover{border-color:var(--gold);transform:translateY(-1px);
+  box-shadow:0 9px 24px rgba(0,0,0,.85), 0 0 20px rgba(255,180,90,.42),
+    inset 0 1px 0 rgba(255,220,160,.3)}
+.bell:active{transform:translateY(0)}
+.bell svg{width:35px;height:41px;display:block;
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.85))}
 .handoff{
   display:block;width:100%;margin-top:18px;padding:0;background:none;border:0;
   cursor:pointer;color:#9b8666;font-family:'EB Garamond',Georgia,serif;
   font-size:1.02rem;font-style:italic;text-decoration:underline;
   text-underline-offset:4px;text-align:center;transition:color .2s}
 .handoff:hover{color:#c9b28b}
+
+
+/* ══ THE SPILL ══ A thought goes in whatever shape it arrives in. Ed sorts it. */
+.spill{margin-top:34px}
+.spill .cap{display:block;margin-bottom:10px;text-align:center;
+  font-family:'Cinzel',Georgia,serif;font-size:.76rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--gold-dim)}
+.spill textarea{
+  display:block;width:100%;box-sizing:border-box;min-height:92px;resize:vertical;
+  padding:14px 16px;border-radius:4px;border:1px solid #9a7c45;
+  background:linear-gradient(170deg,#f4e9cd,#e2d2ac);color:var(--ink);
+  font-family:'EB Garamond',Georgia,serif;font-size:1.06rem;line-height:1.45;
+  box-shadow:0 8px 20px rgba(0,0,0,.55), inset 0 0 34px rgba(150,110,50,.14)}
+.spill textarea::placeholder{color:#9a875f;font-style:italic}
+.spill textarea:focus{outline:none;border-color:var(--gold-deep);
+  box-shadow:0 8px 20px rgba(0,0,0,.55), inset 0 0 34px rgba(150,110,50,.2),
+    0 0 0 2px rgba(190,150,70,.28)}
+.spill .drop{
+  display:block;width:100%;margin-top:12px;padding:8px 0;cursor:pointer;
+  border-radius:3px;background:linear-gradient(180deg,#2c2015,#150e08);
+  border:1px solid #6a5231;color:var(--gold-dim);
+  font-family:'Cinzel',Georgia,serif;font-size:.78rem;letter-spacing:.2em;
+  transition:color .25s,border-color .25s}
+.spill .drop:hover{color:var(--gold);border-color:var(--gold-deep)}
 
 /* ══ MAIN QUEST ══ */
 .mainquest{
@@ -119,12 +153,15 @@ body{
 .nail.bl{left:16px;bottom:16px}.nail.br{right:16px;bottom:16px}
 
 /* ══ QUEST LOG ══ */
-.log{margin-top:24px;display:grid;gap:22px;grid-template-columns:repeat(6,minmax(0,1fr))}
-.log > .panel{grid-column:span 3}
-.log > .panel.wide{grid-column:span 6}
+/* Two independent columns, not a grid of equal-height rows. A short panel
+   stops where its content stops and the panel under it moves up to meet it. */
+.log{margin-top:24px;display:grid;gap:22px;grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start}
+.log > .col{display:flex;flex-direction:column;gap:22px;min-width:0}
+.log > .panel.wide{grid-column:span 2}
 @media (max-width:1240px){
   .log{grid-template-columns:1fr}
-  .log > .panel, .log > .panel.wide{grid-column:span 1}
+  .log > .panel.wide{grid-column:span 1}
 }
 .panel .body.stack{display:flex;flex-direction:column;gap:12px}
 
@@ -161,12 +198,20 @@ body{
   color:var(--gold-dim);font-size:1.02rem}
 .note.rep .pin{display:none}
 
+.note.main .thread{font-family:'Cinzel',Georgia,serif;
+  font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
+  color:#7d5d1d;margin-right:10px}
+.note.main .thread:after{content:"\00b7";margin-left:10px;color:#ab9159}
+
 .note.major{background:linear-gradient(165deg,#443661,#2f2547);color:#ded2f5;
   border:1px solid var(--violet-deep);padding-left:18px}
 .note.major .thread{font-family:'Cinzel',Georgia,serif;
   font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
   color:var(--violet);margin-right:10px}
 .note.major .thread:after{content:"\00b7";margin-left:10px;color:#6b5a95}
+.note.major .tally{flex:0 0 auto;font-family:'Cinzel',Georgia,serif;
+  font-size:.66rem;letter-spacing:.12em;color:#a892d8;margin-left:12px;
+  white-space:nowrap;align-self:center}
 .note.major .pin{display:none}
 
 .note .status{flex:0 0 auto;margin-top:0;padding:3px 9px;border-radius:2px;white-space:nowrap;
@@ -219,24 +264,32 @@ body{
 
   <!-- ═══ ED ═══ -->
   <div class="rail">
-    <div class="frame"><img id="edimg" src="assets/ed.png" alt="Ed, the innkeeper, behind his bar"></div>
-    <div class="scroll" id="edline"></div>
-    <div>
-      <a class="bell" id="bell" href="claude://" title="Bring Claude forward">
+    <div class="frame">
+      <img id="edimg" src="assets/ed-square.png" alt="Ed, the innkeeper, behind his bar">
+      <a class="bell" id="bell" href="claude://" title="Ring for Ed" aria-label="Ring for Ed">
         <svg width="86" height="98" viewBox="0 0 74 86" aria-hidden="true">
-          <path d="M12 24 H62" stroke="#5a4830" stroke-width="4" stroke-linecap="round"/>
-          <path d="M37 24 v6" stroke="#4a3a24" stroke-width="3"/>
+          <path d="M12 24 H62" stroke="#a8842f" stroke-width="4" stroke-linecap="round"/>
+          <path d="M37 24 v6" stroke="#8d6c26" stroke-width="3"/>
           <path d="M37 30 c-14 0 -22 12 -22 26 v8 h44 v-8 c0 -14 -8 -26 -22 -26 z"
                 fill="url(#ir)" stroke="#241a10" stroke-width="1.5"/>
-          <rect x="11" y="63" width="52" height="6" rx="3" fill="#4a3a22" stroke="#241a10"/>
-          <circle cx="37" cy="74" r="5" fill="#5a4830" stroke="#241a10"/>
+          <rect x="11" y="63" width="52" height="6" rx="3" fill="#a8842f" stroke="#241a10"/>
+          <circle cx="37" cy="74" r="5" fill="#c9973c" stroke="#241a10"/>
           <defs><linearGradient id="ir" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#8d7350"/><stop offset=".45" stop-color="#57432a"/>
-            <stop offset="1" stop-color="#33271a"/></linearGradient></defs>
+            <stop offset="0" stop-color="#f2d79a"/><stop offset=".45" stop-color="#c9973c"/>
+            <stop offset="1" stop-color="#7d5a18"/></linearGradient></defs>
         </svg>
-        <span class="lip">Ring for Ed</span>
       </a>
+    </div>
+    <div class="scroll" id="edline"></div>
+    <div>
       <button class="handoff" id="handoff" type="button">copy Ed's opening line</button>
+    </div>
+
+    <div class="spill">
+      <span class="cap">Spill</span>
+      <textarea id="spillbox" rows="3"
+        placeholder="Whatever just crossed your mind. Shape doesn't matter."></textarea>
+      <button class="drop" id="drop" type="button">Drop it</button>
     </div>
   </div>
 
@@ -282,6 +335,7 @@ body{
 <div class="foot">Good ale. Warm beds. Bad excuses.</div>
 </div>
 
+<script src="board-data.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════
    THE SEAM. Everything below is placeholder. When the board goes
@@ -322,6 +376,10 @@ const BOARD = {
   ]
 };
 
+/* The seam, filled. board-data.js is written by fill_board.py from ClickUp.
+   Absent, the placeholder above stands and the page still opens. */
+if (window.BOARD_DATA) Object.assign(BOARD, window.BOARD_DATA);
+
 const BELL_PROMPT =
   "You're Ed. Read the latest checkpoint in the project and " +
   "how-we-build-things.md — rule 10 first — then tell me step one.";
@@ -332,12 +390,13 @@ const MAJOR_SHOWN = 3;
 
 /* Two rows of wide panels rather than five narrow ones — a note needs room to
    be a sentence, not a stack of two words. 6-col grid: 2+2+2 then 3+3. */
+/* [type, heading, tone, where] — 'a' and 'b' are the two columns, 'wide' spans. */
 const COLS = [
-  ["main",  "Main Quest Line",   ""],
-  ["major", "Major Quest Lines", "violet"],
-  ["side",  "Side Quests",       ""],
-  ["daily", "Dailies",           "iron"],
-  ["rep",   "Repeatables",       "iron wide"]
+  ["main",  "Main Quest Line",   "",      "a"],
+  ["side",  "Side Quests",       "",      "a"],
+  ["major", "Major Quest Lines", "violet","b"],
+  ["daily", "Dailies",           "iron",  "b"],
+  ["rep",   "Repeatables",       "iron wide", "wide"]
 ];
 
 document.getElementById('mqTitle').innerHTML = BOARD.mainQuest.title.replace(/\n/g,'<br>');
@@ -356,7 +415,11 @@ document.getElementById('lssay').textContent = BOARD.listener.line;
 if (!BOARD.listener.waiting) document.getElementById('listener').classList.add('dark');
 
 const log = document.getElementById('log');
-for (const [type, head, tone] of COLS) {
+const colA = document.createElement('div'); colA.className = 'col';
+const colB = document.createElement('div'); colB.className = 'col';
+log.appendChild(colA); log.appendChild(colB);
+
+for (const [type, head, tone, where] of COLS) {
   let items = BOARD.quests.filter(q => q.type === type);
   let overflow = false;
   if (type === 'major' && items.length > MAJOR_SHOWN) {
@@ -378,7 +441,8 @@ for (const [type, head, tone] of COLS) {
         (q.thread ? '<span class="thread">' + q.thread + '</span>' : '') +
         q.text +
       '</span>' +
-      (q.status ? '<span class="status">' + q.status + '</span>' : '');
+      (q.status ? '<span class="status">' + q.status + '</span>' : '') +
+      (q.tally ? '<span class="tally">' + q.tally + '</span>' : '');
     body.appendChild(n);
   }
   if (overflow) {
@@ -389,7 +453,7 @@ for (const [type, head, tone] of COLS) {
   }
   panel.innerHTML = '<span class="cap">' + head + '</span>';
   panel.appendChild(body);
-  log.appendChild(panel);
+  (where === 'a' ? colA : where === 'b' ? colB : log).appendChild(panel);
 }
 
 /* The bell is a plain link to a bare claude:// — verified to bring the app
@@ -410,6 +474,37 @@ handoff.addEventListener('click', async () => {
   handoff.textContent = ok ? "copied — paste it wherever you are"
                            : "copy failed — grab it from the source";
   setTimeout(() => { handoff.textContent = "copy Ed's opening line"; }, 2600);
+});
+
+/* THE SPILL. The board holds no credentials and reaches nothing on its own --
+   same rule as the bell. So "Drop it" copies the thought as an instruction and
+   rings Ed, and Ed is the one who writes it to Admin > Inbox. Ernie spills;
+   Ed sorts. Wiring this straight into ClickUp means a token, and a token means
+   the local caller, not this file. */
+const SPILL_PREFIX = "File this in ClickUp under Admin > Inbox, exactly as written: ";
+const spillbox = document.getElementById('spillbox');
+const drop = document.getElementById('drop');
+drop.addEventListener('click', async () => {
+  const thought = spillbox.value.trim();
+  if (!thought) { spillbox.focus(); return; }
+  let ok = false;
+  try { await navigator.clipboard.writeText(SPILL_PREFIX + thought); ok = true; }
+  catch (e) {
+    try {
+      const t = document.createElement('textarea');
+      t.value = SPILL_PREFIX + thought; t.style.position='fixed'; t.style.opacity='0';
+      document.body.appendChild(t); t.select();
+      ok = document.execCommand('copy'); document.body.removeChild(t);
+    } catch (e2) { ok = false; }
+  }
+  if (ok) {
+    spillbox.value = '';
+    drop.textContent = 'Copied — ring Ed and paste';
+    window.location.href = 'claude://';
+  } else {
+    drop.textContent = 'Copy failed — keep the text';
+  }
+  setTimeout(() => { drop.textContent = 'Drop it'; }, 3000);
 });
 </script>
 </body>
