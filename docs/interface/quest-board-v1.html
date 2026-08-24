@@ -148,32 +148,6 @@ body{
   filter:drop-shadow(0 2px 5px rgba(0,0,0,.85))}
 
 
-/* ══ THE SPILL ══ A thought goes in whatever shape it arrives in. Ed sorts it. */
-.spill{margin-top:0}
-/* Ed moved to the BOTTOM of the rail on 2026-08-23, so the breathing room that
-   used to sit above the Vault belongs above him now. */
-.rail .ed{margin-top:22px}
-.spill .cap{display:block;margin-bottom:10px;text-align:center;
-  font-family:'Cinzel',Georgia,serif;font-size:.76rem;letter-spacing:.2em;
-  text-transform:uppercase;color:var(--gold-dim)}
-.spill textarea{
-  display:block;width:100%;box-sizing:border-box;min-height:74px;resize:vertical;
-  padding:10px 12px;border-radius:4px;border:1px solid #9a7c45;
-  background:linear-gradient(170deg,#f4e9cd,#e2d2ac);color:var(--ink);
-  font-family:'EB Garamond',Georgia,serif;font-size:.94rem;line-height:1.42;
-  box-shadow:0 8px 20px rgba(0,0,0,.55), inset 0 0 34px rgba(150,110,50,.14)}
-.spill textarea::placeholder{color:#9a875f;font-style:italic}
-.spill textarea:focus{outline:none;border-color:var(--gold-deep);
-  box-shadow:0 8px 20px rgba(0,0,0,.55), inset 0 0 34px rgba(150,110,50,.2),
-    0 0 0 2px rgba(190,150,70,.28)}
-.spill .drop{
-  display:block;width:100%;margin-top:12px;padding:8px 0;cursor:pointer;
-  border-radius:3px;background:linear-gradient(180deg,#2c2015,#150e08);
-  border:1px solid #6a5231;color:var(--gold-dim);
-  font-family:'Cinzel',Georgia,serif;font-size:.78rem;letter-spacing:.2em;
-  transition:color .25s,border-color .25s}
-.spill .drop:hover{color:var(--gold);border-color:var(--gold-deep)}
-
 /* ══ MAIN QUEST ══ */
 .mainquest{
   position:relative;display:flex;align-items:center;gap:18px;padding:13px 34px 13px 20px;
@@ -259,8 +233,11 @@ body{
    if she can't see it, it won't get done. */
 .note.life{background:linear-gradient(160deg,#ece0bd,#d8c59c);color:var(--ink);
   border:1px solid rgba(90,66,26,.4)}
-.note.daily{background:linear-gradient(165deg,#4a3d2c,#372c1f);color:var(--iron);
-  border:1px solid var(--iron-edge)}
+/* Dailies are parchment like everything else. The old dark-stock rule here was
+   built for a note type that no longer exists, and inheriting it is exactly the
+   bug `life` hit on 2026-08-23 -- grey box, invisible text, rendered fine. */
+.note.daily{background:linear-gradient(160deg,#ece0bd,#d8c59c);color:var(--ink);
+  border:1px solid rgba(90,66,26,.4)}
 .note.rep{background:linear-gradient(165deg,#4a3d2c,#372c1f);color:var(--iron);
   border:1px solid var(--iron-edge)}
 .note.daily .pin,.note.rep .pin{
@@ -299,36 +276,57 @@ body{
 .note.main .status,.note.side .status,.note.life .status{
   background:rgba(90,65,25,.13);border-color:rgba(120,90,40,.4);color:#75592c}
 
-/* ══ AGING ══ the only signal this board gives that time has passed.
-   CONTINUOUS, not stepped (2026-08-23). `sat` is a real number 0-3 and the
-   renderer interpolates straight off it, so a note that has sat nine days does
-   not look identical to one that has sat fourteen. The thresholds Ernie chose
-   still mean what they meant -- fill_board.py bends the day count so sat lands
-   on exactly 1.0, 2.0 and 3.0 at them.
-   Tone is a WARMTH shift, never a brightness drop. The old rule dimmed instead:
-   sepia+brightness on already-sepia parchment moved warmth 4 points, less than
-   the panel's own gradient, and age3 came out LESS warm than age2. Measured,
-   not eyeballed. Rule 5a also forbids fading anything Ernie has to read --
-   text contrast measured at every level, 11:1 fresh through 12.9:1 worn. */
+/* ══ STATUS COLOUR ══ replaces the PENDING / PROCESSING word-chips, 2026-08-24.
+   The colour is ClickUp's OWN hex for that status, passed straight through by
+   fill_board.py. The board does not invent a second palette -- if Ernie recolours
+   a status in ClickUp, this follows without anyone touching this file.
+   It rides a left stripe so it reads identically on every note type and never
+   competes with the main quest's gold seal. The status NAME is still carried in
+   the note's title attribute, so hovering says it in words. */
 .note{overflow:hidden}
-/* Tone is a WARMTH shift, never a brightness drop. The old rule dimmed instead
-   -- sepia+brightness on already-sepia parchment moved warmth by 4 points, less
-   than the panel's own gradient, and age3 came out LESS warm than age2. Measured
-   2026-08-23, not eyeballed. Rule 5a also forbids fading anything Ernie reads.
-   Text contrast measured at every level: 11:1 fresh, 12.8:1 at age3. */
-/* The lifting corner. Size rides --corner, set inline from the same number as
-   the tone, so paper and fold age together instead of in three jumps. */
-.note:after{content:"";position:absolute;right:0;bottom:0;pointer-events:none;
-  width:var(--corner,0);height:var(--corner,0);
-  background:linear-gradient(135deg,transparent 50%,rgba(125,95,50,.42) 50%,rgba(55,38,16,.72) 100%)}
+.note:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;
+  background:var(--statuscolor,transparent)}
+
+/* ══ THE DUE DATE ══ plain text, right-aligned, 2026-08-24.
+   Rule 1 still holds: nothing is marked overdue. There is no red, no "LATE", no
+   icon and no escalation -- a past date simply reads as the date it is. The date
+   is INFORMATION, which Ernie asked for; a flag is a judgement, which is banned. */
+.note .due{flex:0 0 auto;font-family:'Cinzel',Georgia,serif;
+  font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+  color:#54401a;white-space:nowrap}
+
+/* ══ URGENT ══ the ONLY thing brightness means on this board, 2026-08-24.
+   Replaces aging, which used to own this channel. Ernie's call: brightness maps
+   to ClickUp's `urgent` priority, not to how long something has sat.
+
+   It is a LIFT plus a glow, not a filter. `filter:brightness()` on parchment
+   washes cream toward white and eats the text contrast -- measured on this exact
+   board in the aging work, where the same mistake cost a whole rebuild. So the
+   paper itself is lighter, the border goes gold, and the note carries an outer
+   warm glow that nothing else on the board has. */
+.note.urgent{
+  background:linear-gradient(165deg,#fffdf6,#fff3cf) !important;
+  border-color:#f0c65e !important;
+  box-shadow:0 0 0 1.5px rgba(240,198,94,.8),
+             0 0 30px 5px rgba(238,186,80,.6),
+             0 6px 14px rgba(0,0,0,.5)}
+/* The gap is widened from BOTH ends: urgent paper goes lighter, and ordinary
+   paper comes down a step. Deepening the ordinary note is safe here and NOT a
+   rule-5a fade -- the ink is near-black, so text contrast measured 9.2:1 at the
+   worst note, well clear of the 4.5 floor. Verified 2026-08-24, not eyeballed. */
+.note.main:not(.urgent){background:linear-gradient(165deg,#ecdfbc,#d6c396)}
+.note.side:not(.urgent),
+.note.life:not(.urgent),
+.note.daily:not(.urgent){background:linear-gradient(160deg,#e2d4ab,#c9b489)}
 
 .more{display:block;text-align:center;font-size:.88rem;font-style:italic;
   color:#9b8666;text-decoration:underline;text-underline-offset:4px}
 
 /* ══ THE LISTENER ══ */
 .lswrap{text-align:center}
-/* Square crop so the notepad above it has room. object-fit keeps the crystal
-   centred rather than squashing it. */
+/* Square crop, object-fit keeps the crystal centred rather than squashing it.
+   Kept exactly as-is through the 2026-08-24 rework — Ernie: "leave that cool
+   listener graphic cause it's dope." */
 .lswrap img{width:100%;max-width:150px;height:150px;object-fit:cover;
   object-position:50% 42%;border-radius:3px}
 .dark img{filter:grayscale(.9) brightness(.34)}
@@ -373,22 +371,13 @@ body{
        tabindex="0" aria-label="Drag to resize the rail; double-click to reset"
        title="Drag to resize · double-click to reset"></div>
 
-  <!-- ═══ THE RAIL ═══ Vault, then the Listener, then Ed with his bell.
-       Reordered 2026-08-23, Ernie's call. The Vault is the only thing here she
-       puts INTO, so it takes the top where her cursor already is; the crystal is
-       a glance, not a read; and Ed keeps the bottom with the bell beside him,
-       because the bell is the thing you reach for on purpose rather than by
-       habit. The side quests were tried in this rail earlier the same session
-       and moved back out — 15 notes at 272px wrap to three lines each, and the
-       notes box is what actually needed the width. ═══ -->
+  <!-- ═══ THE RAIL ═══ the Listener, then Ed with his bell.
+       The Vault (a notepad + "Drop it") was REMOVED 2026-08-24, Ernie's call:
+       "i have 18 thousand places to put notes." The bell stayed — it is a bare
+       claude:// link on Ed's own frame and never had anything to do with the
+       notepad. The side quests were tried in this rail and moved back out — 15
+       notes at 272px wrap to three lines each. ═══ -->
   <div class="rail">
-    <div class="spill">
-      <span class="cap">Add to Vault</span>
-      <textarea id="spillbox" rows="3"
-        placeholder="Whatever just crossed your mind. Shape doesn't matter."></textarea>
-      <button class="drop" id="drop" type="button">Drop it</button>
-    </div>
-
     <div class="panel violet" id="listener">
       <span class="cap">The Listener</span>
       <div class="body lswrap">
@@ -436,22 +425,22 @@ const BOARD = {
   listener: { waiting: true, line: "A record is waiting to be triaged." },
 
   quests: [
-    // sat = wear, a CONTINUOUS number 0-3. NOT a day count — fill_board.py
-    // bends days-untouched onto this scale, on a clock that differs per column,
-    // so 1.0 / 2.0 / 3.0 land on the thresholds Ernie chose. Rendered as wear
-    // ONLY: never printed, never counted, never turned back into a date.
     // Synthetic. Deliberately carries no client name — this file is TRACKED in
     // a public repo, and the real board is board-data.js, which is not.
-    { type:"main",  text:"Run payroll",                 status:"Recurring",   sat:0 },
-    { type:"main",  text:"Process the week's tickets",  status:"Recurring",   sat:1.4 },
-    { type:"main",  text:"Bill clients",                status:"Pending",     sat:0 },
+    //
+    //   urgent       ClickUp priority == urgent. The ONLY thing brightness means.
+    //   statusColor  ClickUp's own hex for that status. Not invented here.
+    //   due          already formatted by fill_board.py, never a raw timestamp.
+    { type:"main", text:"Run payroll",                status:"Recurring", statusColor:"#5f9ea0", due:"Today",     urgent:true  },
+    { type:"main", text:"Process the week's tickets", status:"Recurring", statusColor:"#5f9ea0", due:"Tomorrow",  urgent:false },
+    { type:"main", text:"Bill clients",               status:"Pending",   statusColor:"#8d8d8d", due:"Wed 26",    urgent:false },
 
-    { type:"life",  text:"Mail the parcel back",        status:"Next",        sat:0 },
-    { type:"life",  text:"Book the appointment",        status:"Next",        sat:2.1 },
+    { type:"life", text:"Mail the parcel back",       status:"Next",      statusColor:"#3db88b", due:"Today",     urgent:false },
+    { type:"life", text:"Book the appointment",       status:"Next",      statusColor:"#3db88b", due:"Fri 28",    urgent:true  },
 
-    { type:"side",  text:"Clean up old categories",     status:"Pending",     sat:3 },
-    { type:"side",  text:"Update vendor records",       status:"Waiting",     sat:1 },
-    { type:"side",  text:"Refine reports packages",     status:"Pending",     sat:1.7 }
+    { type:"side", text:"Clean up old categories",    status:"Pending",   statusColor:"#8d8d8d", due:"Yesterday", urgent:false },
+    { type:"side", text:"Update vendor records",      status:"Waiting",   statusColor:"#e8a33d", due:"Thu 27",    urgent:false },
+    { type:"side", text:"Refine reports packages",    status:"Pending",   statusColor:"#8d8d8d", due:"Sat 29",    urgent:false }
   ]
 };
 
@@ -471,9 +460,15 @@ if (window.BOARD_DATA) Object.assign(BOARD, window.BOARD_DATA);
    [type, heading, tone, wide] — the log is a two-column grid and panels flow
    into it in order, so main takes the left, side the right. `wide` spans both. */
 const COLS = [
-  ["main", "Main Quests", "",       false],
-  ["side", "Side Quests", "",       false],
-  ["life", "Life Quests", "violet", true ]
+  ["main",  "Main Quests", "",       false],
+  ["side",  "Side Quests", "",       false],
+  // `life` is EMPTY as of 2026-08-24 (Ernie retagged them to side) and its panel
+  // hides itself below. Left in place because it costs nothing and re-tagging one
+  // task brings the column back -- deleting it would lose those notes silently.
+  ["life",  "Life Quests", "violet", true ],
+  // DAILIES. Driven by the ClickUp STATUS `recurring`, not by a tag. Spans the
+  // full width so it lands directly under Side Quests, Ernie's call 2026-08-24.
+  ["daily", "Dailies",     "violet", true ]
 ];
 
 document.getElementById('mqTitle').innerHTML = BOARD.mainQuest.title.replace(/\n/g,'<br>');
@@ -495,34 +490,30 @@ const log = document.getElementById('log');
 
 for (const [type, head, tone, wide] of COLS) {
   const items = BOARD.quests.filter(q => q.type === type);
+  // An empty column renders NOTHING -- no stub panel, no "0". A heading with no
+  // notes under it is furniture. fill_board.py still prints every column's count
+  // to the terminal, so an empty panel is never silent, only invisible here.
+  if (!items.length) continue;
   const panel = document.createElement('div');
   panel.className = 'panel' + (tone ? ' ' + tone : '');
   const body = document.createElement('div');
   body.className = 'body stack';
   for (const q of items) {
-    // Wear rides ONE continuous number so tone and fold age together. The
-    // coefficients are set so w=1/2/3 land on the three tones that were
-    // measured: warmth +67, +79, +94 against a fresh note's +52.
-    const w = Math.max(0, Math.min(3, +q.sat || 0));
     const n = document.createElement('div');
-    n.className = 'note ' + type;
-    if (w > 0) {
-      n.style.filter = 'sepia(' + (0.24 * w).toFixed(3) + ') saturate(' +
-        (1 + 0.15 * w).toFixed(3) + ') hue-rotate(' + (-4.3 * w).toFixed(2) + 'deg)';
-      n.style.setProperty('--corner', (3.5 + 10.8 * w).toFixed(1) + 'px');
-      // Past w=2 parchment stops taking sepia, so the last stretch is carried by
-      // what actually happens to old paper: the edges brown first. The middle,
-      // where the words are, stays clean.
-      if (w > 2) n.style.boxShadow =
-        'inset 0 0 20px -4px rgba(92,60,24,' + (0.55 * (w - 2)).toFixed(2) +
-        '), 0 6px 13px rgba(0,0,0,.48)';
-    }
+    n.className = 'note ' + type + (q.urgent ? ' urgent' : '');
+    // ClickUp's own status hex drives the left stripe. Missing colour = no
+    // stripe, rather than a guessed one: the board never invents a status.
+    if (q.statusColor) n.style.setProperty('--statuscolor', q.statusColor);
+    // The status name survives as a tooltip. The colour is the glance; the word
+    // is there when the glance is not enough.
+    if (q.status) n.title = q.status;
     // One note shape for every column. The seal marks the work that pays;
-    // everything else takes a pin.
+    // everything else takes a pin. Due date parks on the right where the status
+    // chip used to sit.
     n.innerHTML =
       (type === 'main' ? '<span class="seal">♚</span>' : '<span class="pin"></span>') +
       '<span class="txt">' + q.text + '</span>' +
-      (q.status ? '<span class="status">' + q.status + '</span>' : '');
+      (q.due ? '<span class="due">' + q.due + '</span>' : '');
     body.appendChild(n);
   }
   if (wide) panel.classList.add('wide');
@@ -594,58 +585,6 @@ grip.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') { setRail(cur - step, true); e.preventDefault(); }
 });
 
-/* THE SPILL. The board holds no credentials and reaches nothing on its own --
-   same rule as the bell. So "Drop it" copies the thought as an instruction and
-   rings Ed, and Ed is the one who writes it. Ernie spills; Ed files.
-
-   Retargeted 2026-08-23 from Admin > Inbox to the JOURNAL doc, which is what the
-   Listener actually reads. Ernie's call, having weighed the alternative: wiring
-   this straight into ClickUp needs a token, and the only place to put a token is
-   inside a file designed to be opened from anywhere. That is the exact shape of
-   the credential that sat in a public repo for two months. The board stays dumb
-   ON PURPOSE -- it holds nothing and reaches nothing.
-
-   The doc is named, never ID'd: this file is TRACKED and PUBLIC, and a session
-   with the ClickUp MCP can find "Journal" by name in one search.
-
-   The date is stamped HERE, in Ernie's own browser, rather than left for the
-   session to work out -- a session may be running in another timezone, and the
-   whole point of a journal is that the date is the one thing that must be right. */
-const stamp = () => {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
-                         + '-' + String(d.getDate()).padStart(2, '0');
-};
-const SPILL_PREFIX = () =>
-  'Append this to the ClickUp doc "Journal", page "Notes", under a heading for '
-  + stamp() + ' at the TOP of the page. Create that heading if it is not already '
-  + 'there. APPEND ONLY: read the page first and never overwrite or reorder '
-  + 'anything already in it. The entry, verbatim:\n\n';
-const spillbox = document.getElementById('spillbox');
-const drop = document.getElementById('drop');
-drop.addEventListener('click', async () => {
-  const thought = spillbox.value.trim();
-  if (!thought) { spillbox.focus(); return; }
-  let ok = false;
-  const payload = SPILL_PREFIX() + thought;
-  try { await navigator.clipboard.writeText(payload); ok = true; }
-  catch (e) {
-    try {
-      const t = document.createElement('textarea');
-      t.value = payload; t.style.position='fixed'; t.style.opacity='0';
-      document.body.appendChild(t); t.select();
-      ok = document.execCommand('copy'); document.body.removeChild(t);
-    } catch (e2) { ok = false; }
-  }
-  if (ok) {
-    spillbox.value = '';
-    drop.textContent = 'Copied — ring Ed to file it';
-    window.location.href = 'claude://';
-  } else {
-    drop.textContent = 'Copy failed — keep the text';
-  }
-  setTimeout(() => { drop.textContent = 'Drop it'; }, 3000);
-});
 </script>
 </body>
 </html>
