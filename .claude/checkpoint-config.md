@@ -41,3 +41,6 @@
   `.md` attachment — she cannot download them.
 - Never emit a `claude://.../new` link. The app has one window and it will eat
   whatever she is in.
+- Verify a skill save by diffing the uploaded package against the synced copy,
+  never by the absence of an error. A save can silently drop a file and still
+  report success — this happened 2026-08-26 and left one file a version behind.
